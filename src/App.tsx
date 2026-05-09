@@ -357,6 +357,7 @@ function App() {
 
       <section className="section">
         <h2>Featured Projects</h2>
+        <p className="swipe-hint">Swipe -&gt;</p>
         <div className="project-grid">
           {featuredProjects.map((project) => (
             <motion.article
@@ -374,6 +375,7 @@ function App() {
       </section>
 
       <section className="section two-col">
+        <p className="swipe-hint">Swipe -&gt;</p>
         <div className="glass-card">
           <h2>Experience Narrative</h2>
           <p className="experience-intro">
@@ -438,6 +440,7 @@ function App() {
 
       <section className="section">
         <h2>Hackathons & Competitive Achievements</h2>
+        <p className="swipe-hint">Swipe -&gt;</p>
         <div className="hackathon-grid">
           {hackathons.map((hackathon) => (
             <motion.article
@@ -458,6 +461,7 @@ function App() {
 
       <section className="section">
         <h2>Certificates & Licenses</h2>
+        <p className="swipe-hint">Swipe -&gt;</p>
         <div className="certificate-grid">
           {certificates.map((certificate) => (
             <motion.article
@@ -478,6 +482,7 @@ function App() {
 
       <section className="section">
         <h2>Hobbies & Extracurricular Activities</h2>
+        <p className="swipe-hint">Swipe -&gt;</p>
         <div className="hobbies-grid">
           {hobbies.map((hobby) => (
             <motion.article

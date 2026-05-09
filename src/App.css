@@ -262,6 +262,16 @@
   margin-bottom: 1rem;
 }
 
+.swipe-hint {
+  display: none;
+  margin: -0.4rem 0 0.6rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8fdfff;
+}
+
 .project-grid {
   display: grid;
   gap: 1rem;
@@ -697,6 +707,7 @@
   }
 
   .project-grid,
+  .two-col,
   .hackathon-grid,
   .certificate-grid,
   .hobbies-grid {
@@ -709,11 +720,16 @@
   }
 
   .project-card,
+  .two-col > .glass-card,
   .hackathon-card,
   .certificate-card,
   .hobby-card {
     min-width: 82%;
     scroll-snap-align: start;
+  }
+
+  .two-col > .glass-card {
+    padding: 0.95rem;
   }
 
   .project-card {
@@ -723,10 +739,6 @@
 
   .certificate-card img {
     height: 170px;
-  }
-
-  .two-col .glass-card {
-    padding: 1rem;
   }
 
   .timeline-item {
@@ -748,5 +760,9 @@
   .footer-links {
     flex-wrap: wrap;
     gap: 0.6rem;
+  }
+
+  .swipe-hint {
+    display: block;
   }
 }
