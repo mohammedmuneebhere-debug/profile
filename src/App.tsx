@@ -178,6 +178,49 @@ function App() {
     [],
   )
 
+  const neuralNodes = useMemo(
+    () => [
+      { id: 'n1', x: 10, y: 18, size: 9 },
+      { id: 'n2', x: 24, y: 30, size: 7 },
+      { id: 'n3', x: 40, y: 20, size: 8 },
+      { id: 'n4', x: 58, y: 34, size: 9 },
+      { id: 'n5', x: 72, y: 18, size: 7 },
+      { id: 'n6', x: 84, y: 30, size: 8 },
+      { id: 'n7', x: 18, y: 58, size: 8 },
+      { id: 'n8', x: 34, y: 70, size: 10 },
+      { id: 'n9', x: 52, y: 62, size: 8 },
+      { id: 'n10', x: 69, y: 74, size: 9 },
+      { id: 'n11', x: 86, y: 60, size: 7 },
+    ],
+    [],
+  )
+
+  const neuralLinks = useMemo(
+    () => [
+      ['n1', 'n2'],
+      ['n2', 'n3'],
+      ['n3', 'n4'],
+      ['n4', 'n5'],
+      ['n5', 'n6'],
+      ['n2', 'n7'],
+      ['n3', 'n8'],
+      ['n4', 'n9'],
+      ['n5', 'n10'],
+      ['n6', 'n11'],
+      ['n7', 'n8'],
+      ['n8', 'n9'],
+      ['n9', 'n10'],
+      ['n10', 'n11'],
+      ['n3', 'n9'],
+      ['n1', 'n8'],
+      ['n4', 'n10'],
+      ['n6', 'n9'],
+    ],
+    [],
+  )
+
+  const nodeMap = useMemo(() => Object.fromEntries(neuralNodes.map((node) => [node.id, node])), [neuralNodes])
+
   return (
     <div className="page">
       <div className="canvas-wrap" aria-hidden="true">
@@ -191,6 +234,34 @@ function App() {
         </Canvas>
       </div>
       <div className="ai-thinking-overlay" aria-hidden="true">
+        <svg className="neural-network" viewBox="0 0 100 100" preserveAspectRatio="none">
+          {neuralLinks.map(([from, to], index) => {
+            const a = nodeMap[from]
+            const b = nodeMap[to]
+            if (!a || !b) return null
+            return (
+              <line
+                key={`${from}-${to}`}
+                x1={a.x}
+                y1={a.y}
+                x2={b.x}
+                y2={b.y}
+                className="neural-link"
+                style={{ animationDelay: `${index * 0.2}s` }}
+              />
+            )
+          })}
+          {neuralNodes.map((node, index) => (
+            <circle
+              key={node.id}
+              cx={node.x}
+              cy={node.y}
+              r={node.size / 10}
+              className="neural-node"
+              style={{ animationDelay: `${index * 0.35}s` }}
+            />
+          ))}
+        </svg>
         {['analyze()', 'reason()', 'predict()', 'optimize()', 'learn()', 'infer()', 'chain_of_thought', 'agent_loop'].map(
           (token, index) => (
             <span key={token} style={{ animationDelay: `${index * 1.2}s` }}>

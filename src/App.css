@@ -15,10 +15,11 @@
   content: '';
   position: fixed;
   inset: 0;
-  background: radial-gradient(circle at 20% 20%, rgba(141, 91, 255, 0.2), transparent 40%),
-    radial-gradient(circle at 80% 25%, rgba(53, 212, 255, 0.15), transparent 42%),
-    radial-gradient(circle at 50% 80%, rgba(255, 107, 162, 0.13), transparent 40%),
-    linear-gradient(130deg, rgba(13, 223, 255, 0.05) 0%, rgba(120, 64, 255, 0.08) 45%, rgba(255, 122, 180, 0.05) 100%);
+  background:
+    radial-gradient(circle at 18% 18%, rgba(39, 198, 255, 0.2), transparent 43%),
+    radial-gradient(circle at 82% 22%, rgba(138, 95, 255, 0.18), transparent 44%),
+    radial-gradient(circle at 56% 78%, rgba(49, 224, 193, 0.12), transparent 42%),
+    linear-gradient(160deg, rgba(5, 11, 26, 0.94) 0%, rgba(7, 16, 35, 0.97) 46%, rgba(8, 21, 41, 0.95) 100%);
   z-index: -1;
   pointer-events: none;
 }
@@ -31,36 +32,65 @@
   z-index: -1;
 }
 
+.neural-network {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.45;
+}
+
+.neural-link {
+  stroke: rgba(125, 230, 255, 0.34);
+  stroke-width: 0.14;
+  stroke-linecap: round;
+  stroke-dasharray: 1.4 2;
+  animation: neuralFlow 7.4s linear infinite;
+}
+
+.neural-node {
+  fill: rgba(167, 234, 255, 0.88);
+  filter: drop-shadow(0 0 10px rgba(47, 212, 255, 0.48));
+  animation: nodePulse 3.8s ease-in-out infinite;
+}
+
 .ai-thinking-overlay::after {
   content: '';
   position: absolute;
   inset: -20%;
-  background: conic-gradient(from 180deg at 50% 50%, rgba(53, 212, 255, 0.12), rgba(141, 91, 255, 0.11), rgba(255, 107, 162, 0.1), rgba(53, 212, 255, 0.12));
-  filter: blur(70px);
-  animation: rotateAura 20s linear infinite;
-  opacity: 0.45;
+  background: conic-gradient(
+    from 210deg at 50% 50%,
+    rgba(52, 211, 255, 0.09),
+    rgba(126, 96, 255, 0.11),
+    rgba(57, 239, 199, 0.08),
+    rgba(52, 211, 255, 0.09)
+  );
+  filter: blur(82px);
+  animation: rotateAura 26s linear infinite;
+  opacity: 0.38;
 }
 
 .ai-thinking-overlay::before {
   content: '';
   position: absolute;
   inset: 0;
-  background-image: linear-gradient(rgba(53, 212, 255, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(53, 212, 255, 0.08) 1px, transparent 1px);
-  background-size: 42px 42px;
-  mask-image: radial-gradient(circle at center, black 24%, transparent 74%);
-  animation: gridPulse 7.5s ease-in-out infinite;
+  background-image:
+    linear-gradient(rgba(80, 215, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(80, 215, 255, 0.06) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(circle at center, black 28%, transparent 78%);
+  animation: gridPulse 10s ease-in-out infinite;
 }
 
 .ai-thinking-overlay span {
   position: absolute;
   left: -15%;
-  color: rgba(143, 223, 255, 0.3);
+  color: rgba(165, 231, 255, 0.25);
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: clamp(0.72rem, 1vw, 0.94rem);
+  font-size: clamp(0.7rem, 0.95vw, 0.9rem);
   letter-spacing: 0.08em;
   text-transform: lowercase;
-  animation: tokenDrift 14s linear infinite;
+  animation: tokenDrift 16s linear infinite;
 }
 
 .ai-thinking-overlay span:nth-child(1) {
@@ -91,34 +121,34 @@
 .neural-orb {
   position: absolute;
   border-radius: 50%;
-  filter: blur(3px);
-  opacity: 0.55;
-  animation: orbFloat 9s ease-in-out infinite;
+  filter: blur(8px);
+  opacity: 0.36;
+  animation: orbFloat 12s ease-in-out infinite;
 }
 
 .orb-1 {
-  width: 220px;
-  height: 220px;
-  top: 18%;
-  left: 12%;
-  background: radial-gradient(circle, rgba(53, 212, 255, 0.42), transparent 70%);
+  width: 260px;
+  height: 260px;
+  top: 14%;
+  left: 10%;
+  background: radial-gradient(circle, rgba(53, 212, 255, 0.26), transparent 72%);
 }
 
 .orb-2 {
-  width: 280px;
-  height: 280px;
+  width: 320px;
+  height: 320px;
   top: 50%;
-  right: 10%;
-  background: radial-gradient(circle, rgba(141, 91, 255, 0.37), transparent 70%);
+  right: 8%;
+  background: radial-gradient(circle, rgba(141, 91, 255, 0.24), transparent 72%);
   animation-delay: -2s;
 }
 
 .orb-3 {
-  width: 210px;
-  height: 210px;
-  bottom: 5%;
-  left: 42%;
-  background: radial-gradient(circle, rgba(255, 107, 162, 0.28), transparent 70%);
+  width: 260px;
+  height: 260px;
+  bottom: 4%;
+  left: 40%;
+  background: radial-gradient(circle, rgba(57, 239, 199, 0.2), transparent 74%);
   animation-delay: -4s;
 }
 
@@ -472,10 +502,10 @@
     transform: translateX(0);
     opacity: 0;
   }
-  15% {
+  14% {
     opacity: 1;
   }
-  85% {
+  86% {
     opacity: 1;
   }
   100% {
@@ -487,10 +517,36 @@
 @keyframes gridPulse {
   0%,
   100% {
-    opacity: 0.4;
+    opacity: 0.32;
   }
   50% {
-    opacity: 0.8;
+    opacity: 0.62;
+  }
+}
+
+@keyframes neuralFlow {
+  0% {
+    stroke-dashoffset: 12;
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.72;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0.2;
+  }
+}
+
+@keyframes nodePulse {
+  0%,
+  100% {
+    opacity: 0.48;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.95;
+    transform: scale(1.26);
   }
 }
 
@@ -500,7 +556,7 @@
     transform: translate3d(0, 0, 0) scale(1);
   }
   50% {
-    transform: translate3d(0, -18px, 0) scale(1.08);
+    transform: translate3d(0, -22px, 0) scale(1.06);
   }
 }
 
