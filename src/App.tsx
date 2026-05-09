@@ -78,10 +78,38 @@ const featuredProjects = [
 ]
 
 const experience = [
-  'AI Intern @ Alfido Tech (4 months) - built and evaluated ML/DL solutions.',
-  'Web Development Lead @ GDGC MCET - mentored teams and delivered event platforms.',
-  'Student Project Associate @ L&T Metro Rail Hyderabad - ridership survey analytics.',
-  'Freelance Developer - AI chatbot automation and MT5 bridging platform.',
+  {
+    role: 'AI Intern',
+    org: 'Alfido Tech',
+    period: '4 Months',
+    impact:
+      'Built and evaluated machine learning and deep learning pipelines, and integrated Python AI workflows into real applications.',
+    highlights: ['Model experimentation', 'Evaluation pipelines', 'AI workflow integration'],
+  },
+  {
+    role: 'Web Development Lead',
+    org: 'GDGC MCET',
+    period: 'Leadership Role',
+    impact:
+      'Led the web development vertical, mentored contributors, and delivered scalable event/community web platforms.',
+    highlights: ['Team mentoring', 'Production web delivery', 'Modern engineering standards'],
+  },
+  {
+    role: 'Student Project Associate - AI/ML & Data Analytics',
+    org: 'L&T Metro Rail Hyderabad',
+    period: '5-Month Project',
+    impact:
+      'Executed AI/ML-driven ridership survey and prediction workflows for Hyderabad red-line corridors using real-time field data.',
+    highlights: ['Field data collection', 'Predictive analytics', 'Stakeholder-aligned reporting'],
+  },
+  {
+    role: 'Freelance AI Developer',
+    org: 'Independent Projects',
+    period: 'Ongoing',
+    impact:
+      'Developing automated MT5 bridge platforms with AI chatbot-based trade execution and secure broker/server connectivity.',
+    highlights: ['Automation architecture', 'AI chatbot execution', 'Secure integration design'],
+  },
 ]
 
 const hackathons = [
@@ -347,12 +375,32 @@ function App() {
 
       <section className="section two-col">
         <div className="glass-card">
-          <h2>Experience Highlights</h2>
-          <ul className="timeline">
+          <h2>Experience Narrative</h2>
+          <p className="experience-intro">
+            Roles where I combined AI engineering, product thinking, and leadership to deliver measurable outcomes.
+          </p>
+          <div className="timeline">
             {experience.map((item) => (
-              <li key={item}>{item}</li>
+              <motion.article
+                key={`${item.role}-${item.org}`}
+                className="timeline-item"
+                whileHover={{ x: 6, y: -2 }}
+                transition={{ type: 'spring', stiffness: 180, damping: 16 }}
+              >
+                <div className="timeline-head">
+                  <h3>{item.role}</h3>
+                  <span>{item.period}</span>
+                </div>
+                <p className="timeline-org">{item.org}</p>
+                <p className="timeline-impact">{item.impact}</p>
+                <div className="timeline-tags">
+                  {item.highlights.map((tag) => (
+                    <span key={tag}>{tag}</span>
+                  ))}
+                </div>
+              </motion.article>
             ))}
-          </ul>
+          </div>
         </div>
         <div className="glass-card">
           <h2>Skills Intelligence Dashboard</h2>
