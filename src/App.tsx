@@ -52,28 +52,43 @@ function FloatingGeometry() {
 const featuredProjects = [
   {
     title: 'SYAL - Smart Youth Analytics & Learning Platform',
-    desc: 'GenAI-driven platform using Gemini APIs, contextual prompts, and scalable AI content workflows.',
+    desc: 'GenAI learning platform that tailors analytics and guidance to the user context.',
+    detail:
+      'Focused on safe key handling, session continuity so answers stay coherent over time, and a structure that can grow with more users without rewriting core flows.',
+    highlights: ['Responsible-use guardrails in production patterns', 'Stateful, user-aware reply flows', 'Separation of orchestration vs presentation layers'],
     tech: 'Gemini LLMs, Prompt Engineering, Python, JavaScript, Cloud APIs',
   },
   {
     title: 'CryptoVista - AI-Powered Crypto Analytics',
-    desc: 'Real-time analytics platform with scheduled ML pipelines, indicators, predictive models, and dashboards.',
+    desc: 'Cryptocurrency analytics powered by ML—turning market data into forecasts, signals, and dashboard-ready insights.',
+    detail:
+      'Trains and refreshes models on price and volume history so predictions and technical views stay tied to fresh data; ingestion and job layers stay separate from the UI so you can swap or retrain models without breaking charts.',
+    highlights: ['ML on live and historical crypto series', 'Normalized pipelines from messy exchange feeds', 'Contract-first API between analytics models and UI'],
     tech: 'React + Vite, Python, Scikit-learn, TensorFlow, REST APIs',
   },
   {
     title: 'CredGenie AI - Credit Intelligence Platform',
-    desc: 'Autonomous credit decisioning engine with document intelligence, explainable ML, and CAM generation.',
+    desc: 'Corporate credit workflow from documents and external signals to scored decisions and written memos.',
+    detail:
+      'Bridges scanned filings, structured ledgers, and third-party context into one narrative: who is exposed, how networks connect, and why a recommendation is justified—before any prose is drafted.',
+    highlights: ['Multi-source ingestion (statements, GST, banking)', 'Promoter and counterparty relationship view', 'Narrative memos grounded in extracted facts'],
     tech: 'FastAPI, OCR, LangChain, LLMs, XGBoost, Neo4j',
   },
   {
     title: 'GreenMind AI',
-    desc: 'Built an optimizer that reduces prompt tokens while preserving semantic meaning and model quality.',
+    desc: 'Inference stack that trims cost by shrinking inputs and picking the right model tier per request.',
+    detail:
+      'Trained and evaluated compression policies so shorter prompts still carry the same intent, then layered a router that chooses capacity based on task difficulty rather than always defaulting to the largest model.',
+    highlights: ['Measured cost–quality tradeoffs on real prompts', 'Tiered routing instead of one-size-fits-all', 'Interpretability hooks for policy decisions'],
     tech: 'Python, XAI, Deep Learning, Reinforcement Learning',
   },
   {
     title: 'Shardeum AI Risk Manager',
-    desc: 'Explored AI-assisted risk management for decentralized blockchain ecosystems with Web3 integration.',
-    tech: 'Web3, Blockchain Fundamentals, AI Risk Analysis',
+    desc: 'Web3-focused prototype that combines on-chain data, oracle-style bridges, and AI to reason about network risk.',
+    detail:
+      'Worked with decentralized stack concepts and an oracle on-chain/off-chain framing: how verified external signals and chain state feed risk models, and how AI outputs stay aligned with what contracts and indexers actually see. Second place at Shardeum Proof of Community.',
+    highlights: ['Web3 primitives and decentralized architecture', 'Oracle and on-chain/off-chain data boundaries', 'Hackathon delivery with clear risk narrative for judges'],
+    tech: 'Web3, Blockchain, Oracles, On/Off-chain Frameworks, AI Risk Analysis',
   },
 ]
 
@@ -367,7 +382,13 @@ function App() {
               transition={{ type: 'spring', stiffness: 180, damping: 16 }}
             >
               <h3>{project.title}</h3>
-              <p>{project.desc}</p>
+              <p className="project-lead">{project.desc}</p>
+              <p className="project-detail">{project.detail}</p>
+              <ul className="project-highlights">
+                {project.highlights.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
               <small>{project.tech}</small>
             </motion.article>
           ))}
