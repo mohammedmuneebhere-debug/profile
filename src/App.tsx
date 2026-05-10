@@ -199,6 +199,9 @@ const certificates = [
 ]
 
 function App() {
+  const gmailComposeUrl =
+    'https://mail.google.com/mail/?view=cm&fs=1&to=mohammedmuneebhere%40gmail.com&su=Portfolio%20Inquiry'
+
   const skillTracks = useMemo(
     () => [
       { name: 'Generative AI & LLM Systems', level: 92, tags: ['RAG', 'Prompt Engineering', 'LangChain', 'Gemini'] },
@@ -330,7 +333,7 @@ function App() {
             Building production-grade AI applications with modern full-stack engineering and immersive user experiences.
           </p>
           <div className="hero-actions">
-            <a href="mailto:mohammedmuneebhere@gmail.com" className="btn primary">
+            <a href={gmailComposeUrl} target="_blank" rel="noreferrer" className="btn primary">
               <FaEnvelope />
               Contact Me
             </a>
@@ -522,7 +525,11 @@ function App() {
       <footer className="section footer glass-card">
         <h2>Let us build something exceptional.</h2>
         <p>
-          Reach me at <a href="mailto:mohammedmuneebhere@gmail.com">mohammedmuneebhere@gmail.com</a> or explore my
+          Reach me at{' '}
+          <a href={gmailComposeUrl} target="_blank" rel="noreferrer">
+            mohammedmuneebhere@gmail.com
+          </a>{' '}
+          or explore my
           work profiles.
         </p>
         <div className="footer-links">
