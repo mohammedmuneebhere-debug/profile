@@ -1,9 +1,7 @@
-import { Canvas, useFrame } from '@react-three/fiber'
-import { Float, OrbitControls, Stars } from '@react-three/drei'
 import { motion } from 'framer-motion'
-import { FaGithub, FaLinkedin, FaExternalLinkAlt, FaEnvelope, FaTrophy } from 'react-icons/fa'
-import { useMemo, useRef } from 'react'
-import type { Group } from 'three'
+import { FaDownload, FaEnvelope, FaExternalLinkAlt, FaGithub, FaLinkedin, FaTimes, FaTrophy } from 'react-icons/fa'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import type { CSSProperties } from 'react'
 import profileImage from './assets/profile.png'
 import trainSmallModelBadge from './assets/train-small-language-model-badge.png'
 import ijrasetCertificate from './assets/ijraset-certificate.png'
@@ -16,79 +14,337 @@ import prodigyInternshipCertificate from './assets/certificates/prodigy-internsh
 import iitRoorkeeFinalistCertificate from './assets/certificates/iit-roorkee-national-finalist.png'
 import './App.css'
 
-function FloatingGeometry() {
-  const group = useRef<Group>(null)
+const thinkingTokens = [
+  'analysing_context()',
+  'vector_search',
+  'latent_intent',
+  'agent_loop',
+  'model_router',
+  'reasoning_trace',
+  'optimise_cost',
+  'safe_outputs',
+  'embedding_space',
+  'memory_state',
+  'inference_stack',
+  'signal_found',
+]
 
-  useFrame((state) => {
-    if (!group.current) return
-    group.current.rotation.y = state.clock.elapsedTime * 0.18
-    group.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.2) * 0.08
-  })
+function NeuralThinkingField() {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const gl = canvas.getContext('webgl', { antialias: true, alpha: true })
+    if (!gl) return
+
+    let animationFrame = 0
+    let width = window.innerWidth
+    let height = window.innerHeight
+    const pointer = { x: 0, y: 0, targetX: 0, targetY: 0, energy: 0, targetEnergy: 0 }
+    const dotCount = window.innerWidth < 700 ? 2400 : 5200
+
+    const randomPointOnSphere = () => {
+      const u = Math.random() * 2 - 1
+      const angle = Math.random() * Math.PI * 2
+      const radius = Math.sqrt(1 - u * u)
+      return [radius * Math.cos(angle), u, radius * Math.sin(angle)]
+    }
+
+    const dots = new Float32Array(dotCount * 3)
+    for (let index = 0; index < dotCount; index += 1) {
+      const point = randomPointOnSphere()
+      dots[index * 3] = point[0]
+      dots[index * 3 + 1] = point[1]
+      dots[index * 3 + 2] = point[2]
+    }
+
+    const vertexShaderSource = `
+      precision mediump float;
+      attribute vec3 aPos;
+
+      uniform float uTime;
+      uniform float uAspect;
+      uniform vec2 uPointer;
+      uniform float uEnergy;
+      uniform float uScale;
+
+      varying float vPulse;
+      varying float vDepth;
+      varying float vHover;
+      varying float vTone;
+
+      vec3 rotateY(vec3 p, float a) {
+        float c = cos(a);
+        float s = sin(a);
+        return vec3(p.x * c + p.z * s, p.y, -p.x * s + p.z * c);
+      }
+
+      vec3 rotateX(vec3 p, float a) {
+        float c = cos(a);
+        float s = sin(a);
+        return vec3(p.x, p.y * c - p.z * s, p.y * s + p.z * c);
+      }
+
+      float wavePulse(vec3 n, vec3 c, float sweep, float width) {
+        float d = acos(clamp(dot(n, c), -1.0, 1.0));
+        return max(0.0, 1.0 - abs(d - sweep) / width);
+      }
+
+      void main() {
+        float zoom = uScale * (1.0 + sin(uTime * 1.45) * 0.045 + uEnergy * 0.13);
+        float ry = uTime * 0.92 + uPointer.x * 0.58;
+        float rx = sin(uTime * 0.34) * 0.34 - uPointer.y * 0.38;
+        vec3 p = rotateX(rotateY(aPos, ry), rx) * zoom;
+
+        vec3 centerA = normalize(vec3(cos(uTime * 0.62), sin(uTime * 1.05) * 0.45, sin(uTime * 0.62)));
+        vec3 centerB = normalize(vec3(cos(uTime * 0.85 + 1.9), sin(uTime * 1.31 + 0.8) * 0.35, sin(uTime * 0.85 + 1.9)));
+        float pulseA = wavePulse(normalize(p), centerA, mod(uTime * 1.35, 3.14159265), 0.2);
+        float pulseB = wavePulse(normalize(p), centerB, mod(uTime * 1.92 + 0.7, 3.14159265), 0.24);
+        vPulse = max(pulseA * 0.95, pulseB * 0.8);
+
+        vec3 view = p + vec3(uPointer.x * 0.15, -uPointer.y * 0.1, -3.55);
+        float invZ = 1.0 / max(0.6, -view.z);
+        float focal = 1.72;
+        vec2 ndc = vec2((view.x * focal * invZ) / uAspect, view.y * focal * invZ);
+        gl_Position = vec4(ndc, (3.8 + view.z) * 0.28, 1.0);
+
+        float cursorDist = distance(ndc, uPointer * vec2(0.78, -0.78));
+        vHover = (1.0 - smoothstep(0.02, 0.52, cursorDist)) * uEnergy;
+        vDepth = clamp(1.0 - (-view.z - 2.2) / 2.2, 0.0, 1.0);
+        vTone = 0.5 + 0.5 * sin(uTime * 0.7 + p.y * 3.4 + p.x * 1.8);
+
+        gl_PointSize = (1.25 + vDepth * 3.9 + vPulse * 5.4 + vHover * 9.0) * (0.72 + invZ * 1.15);
+      }
+    `
+
+    const fragmentShaderSource = `
+      precision mediump float;
+      varying float vPulse;
+      varying float vDepth;
+      varying float vHover;
+      varying float vTone;
+
+      vec3 hue(float t) {
+        vec3 a = vec3(0.5, 0.5, 0.5);
+        vec3 b = vec3(0.5, 0.5, 0.5);
+        vec3 c = vec3(1.0, 1.0, 1.0);
+        vec3 d = vec3(0.54, 0.68, 0.88);
+        return a + b * cos(6.28318 * (c * t + d));
+      }
+
+      void main() {
+        vec2 uv = gl_PointCoord * 2.0 - 1.0;
+        float r = dot(uv, uv);
+        if (r > 1.0) discard;
+
+        float core = smoothstep(1.0, 0.02, r);
+        float rim = smoothstep(0.86, 0.26, sqrt(r));
+        float glow = core * (0.28 + vDepth * 0.5 + vPulse * 0.92 + vHover);
+        float tone = 0.58 + vPulse * 0.16 + vHover * 0.18 + vTone * 0.14;
+
+        vec3 base = hue(tone);
+        vec3 cyan = vec3(0.45, 0.88, 1.0);
+        vec3 gold = vec3(1.0, 0.78, 0.24);
+        vec3 col = mix(base, cyan, vPulse * 0.52 + vDepth * 0.26);
+        col = mix(col, gold, vHover * 0.26);
+
+        float alpha = glow * rim;
+        gl_FragColor = vec4(col * (0.62 + glow * 1.28), alpha);
+      }
+    `
+
+    const compileShader = (type: number, source: string) => {
+      const shader = gl.createShader(type)
+      if (!shader) throw new Error('Unable to create shader')
+      gl.shaderSource(shader, source)
+      gl.compileShader(shader)
+      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        const info = gl.getShaderInfoLog(shader)
+        gl.deleteShader(shader)
+        throw new Error(info || 'Shader compilation failed')
+      }
+      return shader
+    }
+
+    const createProgram = () => {
+      const vertexShader = compileShader(gl.VERTEX_SHADER, vertexShaderSource)
+      const fragmentShader = compileShader(gl.FRAGMENT_SHADER, fragmentShaderSource)
+      const program = gl.createProgram()
+      if (!program) throw new Error('Unable to create WebGL program')
+      gl.attachShader(program, vertexShader)
+      gl.attachShader(program, fragmentShader)
+      gl.linkProgram(program)
+      if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+        const info = gl.getProgramInfoLog(program)
+        throw new Error(info || 'Program linking failed')
+      }
+      gl.deleteShader(vertexShader)
+      gl.deleteShader(fragmentShader)
+      return program
+    }
+
+    const program = createProgram()
+    gl.useProgram(program)
+
+    const buffer = gl.createBuffer()
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
+    gl.bufferData(gl.ARRAY_BUFFER, dots, gl.STATIC_DRAW)
+
+    const aPos = gl.getAttribLocation(program, 'aPos')
+    gl.enableVertexAttribArray(aPos)
+    gl.vertexAttribPointer(aPos, 3, gl.FLOAT, false, 0, 0)
+
+    const uniforms = {
+      time: gl.getUniformLocation(program, 'uTime'),
+      aspect: gl.getUniformLocation(program, 'uAspect'),
+      pointer: gl.getUniformLocation(program, 'uPointer'),
+      energy: gl.getUniformLocation(program, 'uEnergy'),
+      scale: gl.getUniformLocation(program, 'uScale'),
+    }
+
+    gl.enable(gl.BLEND)
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE)
+    gl.disable(gl.DEPTH_TEST)
+
+    const resize = () => {
+      const pixelRatio = Math.min(window.devicePixelRatio || 1, 2)
+      width = window.innerWidth
+      height = window.innerHeight
+      canvas.width = Math.floor(width * pixelRatio)
+      canvas.height = Math.floor(height * pixelRatio)
+      canvas.style.width = `${width}px`
+      canvas.style.height = `${height}px`
+      gl.viewport(0, 0, canvas.width, canvas.height)
+    }
+
+    const syncPointer = (clientX: number, clientY: number) => {
+      pointer.targetX = (clientX / Math.max(width, 1) - 0.5) * 2
+      pointer.targetY = (clientY / Math.max(height, 1) - 0.5) * 2
+      pointer.targetEnergy = 1
+    }
+
+    const handlePointerMove = (event: PointerEvent) => syncPointer(event.clientX, event.clientY)
+    const handleTouchMove = (event: TouchEvent) => {
+      const touch = event.touches[0]
+      if (touch) syncPointer(touch.clientX, touch.clientY)
+    }
+
+    const render = (now: number) => {
+      pointer.x += (pointer.targetX - pointer.x) * 0.08
+      pointer.y += (pointer.targetY - pointer.y) * 0.08
+      pointer.energy += (pointer.targetEnergy - pointer.energy) * 0.08
+      pointer.targetEnergy *= 0.96
+
+      gl.clearColor(0, 0, 0, 0)
+      gl.clear(gl.COLOR_BUFFER_BIT)
+      gl.useProgram(program)
+      gl.uniform1f(uniforms.time, now * 0.00055)
+      gl.uniform1f(uniforms.aspect, width / Math.max(height, 1))
+      gl.uniform2f(uniforms.pointer, pointer.x, pointer.y)
+      gl.uniform1f(uniforms.energy, pointer.energy)
+      gl.uniform1f(uniforms.scale, width < 700 ? 1.28 : 1.42)
+      gl.drawArrays(gl.POINTS, 0, dotCount)
+
+      animationFrame = requestAnimationFrame(render)
+    }
+
+    resize()
+    window.addEventListener('resize', resize)
+    window.addEventListener('pointermove', handlePointerMove)
+    window.addEventListener('touchmove', handleTouchMove, { passive: true })
+    animationFrame = requestAnimationFrame(render)
+
+    return () => {
+      cancelAnimationFrame(animationFrame)
+      window.removeEventListener('resize', resize)
+      window.removeEventListener('pointermove', handlePointerMove)
+      window.removeEventListener('touchmove', handleTouchMove)
+      gl.deleteBuffer(buffer)
+      gl.deleteProgram(program)
+    }
+  }, [])
 
   return (
-    <group ref={group}>
-      <Float speed={2} floatIntensity={1.2}>
-        <mesh position={[-2.2, 1.1, -1]}>
-          <torusKnotGeometry args={[0.45, 0.12, 160, 18]} />
-          <meshStandardMaterial color="#8d5bff" metalness={0.7} roughness={0.15} />
-        </mesh>
-      </Float>
-      <Float speed={2.3} floatIntensity={1.1}>
-        <mesh position={[1.8, -0.4, -0.6]}>
-          <icosahedronGeometry args={[0.55, 1]} />
-          <meshStandardMaterial color="#35d4ff" wireframe />
-        </mesh>
-      </Float>
-      <Float speed={1.8} floatIntensity={1.6}>
-        <mesh position={[0, 1.8, -1.8]}>
-          <octahedronGeometry args={[0.35, 0]} />
-          <meshStandardMaterial color="#ff6ba2" metalness={0.6} roughness={0.35} />
-        </mesh>
-      </Float>
-    </group>
+    <>
+      <canvas ref={canvasRef} className="neural-field" aria-hidden="true" />
+      <div className="orb-hud" aria-hidden="true">
+        <span />
+        <span />
+        <span />
+      </div>
+      <div className="code-streams" aria-hidden="true">
+        {thinkingTokens.map((token, index) => (
+          <span
+            key={token}
+            style={
+              {
+                '--lane': index,
+                '--top': `${8 + (index % 12) * 7}%`,
+                '--duration': `${15 + (index % 5) * 2.2}s`,
+                '--delay': `${index * -1.35}s`,
+              } as CSSProperties
+            }
+          >
+            {token}
+          </span>
+        ))}
+      </div>
+    </>
   )
 }
 
 const featuredProjects = [
   {
     title: 'SYAL - Smart Youth Analytics & Learning Platform',
-    desc: 'GenAI learning platform that tailors analytics and guidance to the user context.',
+    desc: 'GenAI learning platform that tailors analytics and guidance to each user context.',
     detail:
-      'Focused on safe key handling, session continuity so answers stay coherent over time, and a structure that can grow with more users without rewriting core flows.',
-    highlights: ['Responsible-use guardrails in production patterns', 'Stateful, user-aware reply flows', 'Separation of orchestration vs presentation layers'],
+      'Focused on safe key handling, session continuity, and a structure that can grow with more users without rewriting core flows.',
+    highlights: ['Responsible-use guardrails', 'Stateful reply flows', 'Clear orchestration and UI layers'],
+    outcome:
+      'Designed as a practical learning assistant that can preserve context, adapt responses, and support future expansion into analytics dashboards and role-based learning flows.',
     tech: 'Gemini LLMs, Prompt Engineering, Python, JavaScript, Cloud APIs',
   },
   {
     title: 'CryptoVista - AI-Powered Crypto Analytics',
-    desc: 'Cryptocurrency analytics powered by ML—turning market data into forecasts, signals, and dashboard-ready insights.',
+    desc: 'Cryptocurrency analytics using ML to turn market data into forecasts, signals, and dashboard insights.',
     detail:
-      'Trains and refreshes models on price and volume history so predictions and technical views stay tied to fresh data; ingestion and job layers stay separate from the UI so you can swap or retrain models without breaking charts.',
-    highlights: ['ML on live and historical crypto series', 'Normalized pipelines from messy exchange feeds', 'Contract-first API between analytics models and UI'],
+      'Separated ingestion, model refresh, and UI contracts so predictions can stay tied to fresh exchange data.',
+    highlights: ['Live and historical crypto series', 'Normalized exchange pipelines', 'Contract-first analytics API'],
+    outcome:
+      'Built around maintainable ML operations: data feeds, retraining logic, forecast outputs, and front-end consumption stay cleanly separated.',
     tech: 'React + Vite, Python, Scikit-learn, TensorFlow, REST APIs',
   },
   {
     title: 'CredGenie AI - Credit Intelligence Platform',
     desc: 'Corporate credit workflow from documents and external signals to scored decisions and written memos.',
     detail:
-      'Bridges scanned filings, structured ledgers, and third-party context into one narrative: who is exposed, how networks connect, and why a recommendation is justified—before any prose is drafted.',
-    highlights: ['Multi-source ingestion (statements, GST, banking)', 'Promoter and counterparty relationship view', 'Narrative memos grounded in extracted facts'],
+      'Bridges scanned filings, structured ledgers, and third-party context into one grounded credit narrative.',
+    highlights: ['Multi-source ingestion', 'Promoter relationship views', 'Fact-grounded narrative memos'],
+    outcome:
+      'Frames credit decisions with explainability: extracted facts, relationship context, model signals, and generated memos work as one decision-support flow.',
     tech: 'FastAPI, OCR, LangChain, LLMs, XGBoost, Neo4j',
   },
   {
     title: 'GreenMind AI',
-    desc: 'Inference stack that trims cost by shrinking inputs and picking the right model tier per request.',
+    desc: 'Inference stack that trims cost by shrinking inputs and choosing the right model tier per request.',
     detail:
-      'Trained and evaluated compression policies so shorter prompts still carry the same intent, then layered a router that chooses capacity based on task difficulty rather than always defaulting to the largest model.',
-    highlights: ['Measured cost–quality tradeoffs on real prompts', 'Tiered routing instead of one-size-fits-all', 'Interpretability hooks for policy decisions'],
+      'Trained compression policies and layered a router that selects model capacity based on task difficulty.',
+    highlights: ['Cost-quality evaluation', 'Tiered LLM routing', 'Interpretability hooks'],
+    outcome:
+      'Explores lower-cost inference by reducing prompt weight and routing tasks to suitable model tiers while preserving answer quality.',
     tech: 'Python, XAI, Deep Learning, Reinforcement Learning',
   },
   {
     title: 'Shardeum AI Risk Manager',
-    desc: 'Web3-focused prototype that combines on-chain data, oracle-style bridges, and AI to reason about network risk.',
+    desc: 'Web3 prototype combining on-chain data, oracle-style bridges, and AI to reason about network risk.',
     detail:
-      'Worked with decentralized stack concepts and an oracle on-chain/off-chain framing: how verified external signals and chain state feed risk models, and how AI outputs stay aligned with what contracts and indexers actually see. Second place at Shardeum Proof of Community.',
-    highlights: ['Web3 primitives and decentralized architecture', 'Oracle and on-chain/off-chain data boundaries', 'Hackathon delivery with clear risk narrative for judges'],
-    tech: 'Web3, Blockchain, Oracles, On/Off-chain Frameworks, AI Risk Analysis',
+      'Framed verified external signals and chain state into risk analysis for a second-place hackathon solution.',
+    highlights: ['Web3 architecture', 'On-chain/off-chain boundaries', 'Risk narrative for judges'],
+    outcome:
+      'Delivered a hackathon-ready prototype that connected decentralized data concepts with AI reasoning and a clear judging narrative.',
+    tech: 'Web3, Blockchain, Oracles, AI Risk Analysis',
   },
 ]
 
@@ -98,32 +354,28 @@ const experience = [
     org: 'Alfido Tech',
     period: '4 Months',
     impact:
-      'Built and evaluated machine learning and deep learning pipelines, and integrated Python AI workflows into real applications.',
-    highlights: ['Model experimentation', 'Evaluation pipelines', 'AI workflow integration'],
+      'Built and evaluated machine learning and deep learning pipelines, then integrated Python AI workflows into application-ready prototypes. Worked across data preparation, model experimentation, performance comparison, and practical deployment thinking so the outputs were not only accurate, but usable inside real product flows.',
   },
   {
     role: 'Web Development Lead',
-    org: 'GDGC MCET',
+    org: 'Google Developer Groups on Campus (GDGC MCET)',
     period: 'Leadership Role',
     impact:
-      'Led the web development vertical, mentored contributors, and delivered scalable event/community web platforms.',
-    highlights: ['Team mentoring', 'Production web delivery', 'Modern engineering standards'],
+      'Led the web technology vertical for Google Developer Groups on Campus at MCET, focusing on modern web development practices, community learning, and hands-on project building. Organized and supported workshops, trained student contributors, guided teams on frontend fundamentals and modern tooling, and helped coordinate community initiatives, technical sessions, and web platforms for events and student engagement.',
   },
   {
     role: 'Student Project Associate - AI/ML & Data Analytics',
     org: 'L&T Metro Rail Hyderabad',
     period: '5-Month Project',
     impact:
-      'Executed AI/ML-driven ridership survey and prediction workflows for Hyderabad red-line corridors using real-time field data.',
-    highlights: ['Field data collection', 'Predictive analytics', 'Stakeholder-aligned reporting'],
+      'Executed AI/ML-driven ridership survey and prediction workflows for Hyderabad red-line corridors using field data and analytics methods. Contributed to collection planning, data interpretation, model-oriented analysis, and stakeholder-ready reporting for understanding metro usage patterns.',
   },
   {
     role: 'Freelance AI Developer',
     org: 'Independent Projects',
     period: 'Ongoing',
     impact:
-      'Developing automated MT5 bridge platforms with AI chatbot-based trade execution and secure broker/server connectivity.',
-    highlights: ['Automation architecture', 'AI chatbot execution', 'Secure integration design'],
+      'Developing automated MT5 bridge platforms with AI chatbot-based trade execution and secure broker/server connectivity. The work combines conversational interfaces, automation logic, external system integration, and reliability-focused architecture for tools that need to respond clearly and safely.',
   },
 ]
 
@@ -135,13 +387,13 @@ const hackathons = [
   },
   {
     name: "IIT Roorkee E-Cell E-Summit - Mind the Product",
-    result: '4th Place (National Level)',
-    detail: 'Designed an IoT-integrated AI system for managing 1M+ railway assets.',
+    result: '4th Place, National Level',
+    detail: 'Designed an IoT-integrated AI system for managing more than 1M railway assets.',
   },
   {
     name: "Hack'Forge - ISL College of Engineering & Technology",
     result: '2nd Place',
-    detail: 'Created an LLM optimizer chatbot that routes prompts to suitable LLM/SLM models.',
+    detail: 'Created an LLM optimizer chatbot that routes prompts to suitable LLM or SLM models.',
   },
   {
     name: 'Innomatics Research Labs Hackathon',
@@ -154,7 +406,7 @@ const certificates = [
   {
     title: 'Train a Small Language Model - Google DeepMind Skill Badge',
     image: trainSmallModelBadge,
-    caption: 'Advanced Google DeepMind skill badge for training and fine-tuning small language models.',
+    caption: 'Advanced skill badge for training and fine-tuning small language models.',
   },
   {
     title: 'IJRASET Research Publication Certificate',
@@ -172,35 +424,66 @@ const certificates = [
     caption: 'Successfully completed a 4-month internship in Artificial Intelligence at Alfido Tech.',
   },
   {
-    title: 'Additional Professional Certificate',
+    title: 'Professional Upskilling Certificate',
     image: additionalCertificate,
-    caption: 'Professional upskilling certificate demonstrating continuous technical learning and participation.',
+    caption: 'Professional upskilling certificate demonstrating continuous technical learning.',
   },
   {
     title: 'MCET Got Talent - 1st Position',
     image: mcetGotTalentCertificate,
-    caption: 'Certificate of Appreciation for securing first position in "MCET\'s Got Talent" (April 2026).',
+    caption: 'Certificate of Appreciation for securing first position in MCET Got Talent.',
   },
   {
     title: 'L&T Metro AI/ML Project Appreciation',
     image: ltMetroProjectCertificate,
-    caption: 'Appreciation certificate for completing AI/ML-based Metro ridership survey and prediction project.',
+    caption: 'Appreciation certificate for completing an AI/ML-based metro ridership prediction project.',
   },
   {
     title: 'Prodigy InfoTech Internship Completion',
     image: prodigyInternshipCertificate,
-    caption: 'Completion certificate for 1-month Generative AI internship at Prodigy InfoTech.',
+    caption: 'Completion certificate for a 1-month Generative AI internship at Prodigy InfoTech.',
   },
   {
     title: 'IIT Roorkee E-Summit National Finalist',
     image: iitRoorkeeFinalistCertificate,
-    caption: 'Certificate of Achievement for emerging as a national finalist in Mind The Product (E-Summit 26).',
+    caption: 'Certificate of Achievement for emerging as a national finalist in Mind The Product.',
   },
 ]
+
+const currentlyExploring = [
+  {
+    title: 'Agentic AI Systems',
+    text: 'Designing multi-step AI workflows with tool use, memory, planning, evaluation loops, and safer task execution.',
+  },
+  {
+    title: 'Expert Systems',
+    text: 'Combining rules, knowledge bases, decision trees, and LLM reasoning for explainable domain-specific assistants.',
+  },
+  {
+    title: 'DevOps & Deployment',
+    text: 'Learning production workflows across CI/CD, environment management, monitoring, and reliable release practices.',
+  },
+  {
+    title: 'Docker & Kubernetes',
+    text: 'Containerizing applications, composing services, and understanding orchestration patterns for scalable AI products.',
+  },
+]
+
+function SectionHeader({ eyebrow, title, text }: { eyebrow: string; title: string; text?: string }) {
+  return (
+    <div className="section-header">
+      <p>{eyebrow}</p>
+      <h2>{title}</h2>
+      {text ? <span>{text}</span> : null}
+    </div>
+  )
+}
 
 function App() {
   const gmailComposeUrl =
     'https://mail.google.com/mail/?view=cm&fs=1&to=mohammedmuneebhere%40gmail.com&su=Portfolio%20Inquiry'
+  const [selectedProject, setSelectedProject] = useState<(typeof featuredProjects)[number] | null>(null)
+  const [selectedCertificate, setSelectedCertificate] = useState<(typeof certificates)[number] | null>(null)
 
   const skillTracks = useMemo(
     () => [
@@ -215,333 +498,256 @@ function App() {
 
   const hobbies = useMemo(
     () => [
-      { title: 'Sports & Fitness', text: 'Regular workouts, athletic activities, and discipline-driven fitness routines.' },
-      { title: 'Literature & Poetry', text: 'Strong interest in reading, reflective writing, and expressive literature.' },
-      { title: 'MUN & Public Speaking', text: 'Model United Nations participation with confident stage and communication presence.' },
-      { title: 'NSS & Community Work', text: 'Active involvement in social service initiatives and community-led events.' },
-      { title: 'Event Leadership', text: 'Organizing workshops, hackathons, and collaborative student tech activities.' },
+      'Sports & fitness',
+      'Literature & poetry',
+      'MUN & public speaking',
+      'NSS & community work',
+      'Event leadership',
     ],
     [],
   )
-
-  const neuralNodes = useMemo(
-    () => [
-      { id: 'n1', x: 10, y: 18, size: 9 },
-      { id: 'n2', x: 24, y: 30, size: 7 },
-      { id: 'n3', x: 40, y: 20, size: 8 },
-      { id: 'n4', x: 58, y: 34, size: 9 },
-      { id: 'n5', x: 72, y: 18, size: 7 },
-      { id: 'n6', x: 84, y: 30, size: 8 },
-      { id: 'n7', x: 18, y: 58, size: 8 },
-      { id: 'n8', x: 34, y: 70, size: 10 },
-      { id: 'n9', x: 52, y: 62, size: 8 },
-      { id: 'n10', x: 69, y: 74, size: 9 },
-      { id: 'n11', x: 86, y: 60, size: 7 },
-    ],
-    [],
-  )
-
-  const neuralLinks = useMemo(
-    () => [
-      ['n1', 'n2'],
-      ['n2', 'n3'],
-      ['n3', 'n4'],
-      ['n4', 'n5'],
-      ['n5', 'n6'],
-      ['n2', 'n7'],
-      ['n3', 'n8'],
-      ['n4', 'n9'],
-      ['n5', 'n10'],
-      ['n6', 'n11'],
-      ['n7', 'n8'],
-      ['n8', 'n9'],
-      ['n9', 'n10'],
-      ['n10', 'n11'],
-      ['n3', 'n9'],
-      ['n1', 'n8'],
-      ['n4', 'n10'],
-      ['n6', 'n9'],
-    ],
-    [],
-  )
-
-  const nodeMap = useMemo(() => Object.fromEntries(neuralNodes.map((node) => [node.id, node])), [neuralNodes])
 
   return (
-    <div className="page">
-      <div className="canvas-wrap" aria-hidden="true">
-        <Canvas camera={{ position: [0, 0, 5], fov: 58 }}>
-          <ambientLight intensity={0.5} />
-          <directionalLight position={[3, 3, 2]} intensity={1.4} />
-          <pointLight position={[-4, -2, 1]} intensity={1} color="#35d4ff" />
-          <FloatingGeometry />
-          <Stars radius={50} depth={50} count={1200} factor={4} saturation={0.9} fade speed={0.8} />
-          <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={0.35} />
-        </Canvas>
-      </div>
-      <div className="ai-thinking-overlay" aria-hidden="true">
-        <svg className="neural-network" viewBox="0 0 100 100" preserveAspectRatio="none">
-          {neuralLinks.map(([from, to], index) => {
-            const a = nodeMap[from]
-            const b = nodeMap[to]
-            if (!a || !b) return null
-            return (
-              <line
-                key={`${from}-${to}`}
-                x1={a.x}
-                y1={a.y}
-                x2={b.x}
-                y2={b.y}
-                className="neural-link"
-                style={{ animationDelay: `${index * 0.2}s` }}
-              />
-            )
-          })}
-          {neuralNodes.map((node, index) => (
-            <circle
-              key={node.id}
-              cx={node.x}
-              cy={node.y}
-              r={node.size / 10}
-              className="neural-node"
-              style={{ animationDelay: `${index * 0.35}s` }}
-            />
-          ))}
-        </svg>
-        {['analyze()', 'reason()', 'predict()', 'optimize()', 'learn()', 'infer()', 'chain_of_thought', 'agent_loop'].map(
-          (token, index) => (
-            <span key={token} style={{ animationDelay: `${index * 1.2}s` }}>
-              {token}
-            </span>
-          ),
-        )}
-        <div className="neural-orb orb-1"></div>
-        <div className="neural-orb orb-2"></div>
-        <div className="neural-orb orb-3"></div>
-      </div>
+    <main className="page-shell">
+      <NeuralThinkingField />
 
-      <header className="hero-section">
-        <motion.div
-          className="hero-content glass-card"
-          initial={{ opacity: 0, y: 34 }}
+      <nav className="topbar">
+        <a href="#home" className="brand">Mohammed Muneeb</a>
+        <div>
+          <a href="#projects">Projects</a>
+          <a href="#experience">Experience</a>
+          <a href="#certificates">Certificates</a>
+        </div>
+      </nav>
+
+      <header id="home" className="hero">
+        <motion.section
+          className="hero-copy"
+          initial={{ opacity: 0, y: 28 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+          transition={{ duration: 0.7 }}
         >
           <p className="eyebrow">AI Engineer | Developer | Builder</p>
           <h1>Mohammed Muneeb ur Rahman</h1>
-          <p className="subtitle">
-            Building production-grade AI applications with modern full-stack engineering and immersive user experiences.
+          <p className="hero-lead">
+            I build production-minded AI applications, ML workflows, and modern full-stack products with a strong
+            focus on practical user experience.
           </p>
           <div className="hero-actions">
-            <a href={gmailComposeUrl} target="_blank" rel="noreferrer" className="btn primary">
-              <FaEnvelope />
-              Contact Me
+            <a href={gmailComposeUrl} target="_blank" rel="noreferrer" className="button button-primary">
+              <FaEnvelope /> Contact
             </a>
-            <a
-              href="https://github.com/mohammedmuneebhere-debug"
-              target="_blank"
-              rel="noreferrer"
-              className="btn ghost"
-            >
-              <FaGithub />
-              GitHub
+            <a href="/Muneeb-CV.pdf" download className="button">
+              <FaDownload /> Resume
             </a>
-            <a
-              href="https://www.linkedin.com/in/mohammed-muneeb-ur-rahman-a2b02b265/"
-              target="_blank"
-              rel="noreferrer"
-              className="btn ghost"
-            >
-              <FaLinkedin />
-              LinkedIn
+            <a href="https://github.com/mohammedmuneebhere-debug" target="_blank" rel="noreferrer" className="button">
+              <FaGithub /> GitHub
+            </a>
+            <a href="https://www.linkedin.com/in/mohammed-muneeb-ur-rahman-a2b02b265/" target="_blank" rel="noreferrer" className="button">
+              <FaLinkedin /> LinkedIn
             </a>
           </div>
-        </motion.div>
+          <div className="metric-row" aria-label="Portfolio highlights">
+            <span><strong>AI/ML</strong> pipelines and GenAI apps</span>
+            <span><strong>5+</strong> featured builds</span>
+            <span><strong>Hyderabad</strong> India</span>
+          </div>
+        </motion.section>
 
-        <motion.div
-          className="profile-card glass-card"
-          initial={{ opacity: 0, scale: 0.88, rotateY: -15 }}
-          animate={{ opacity: 1, scale: 1, rotateY: 0 }}
-          transition={{ duration: 0.9, delay: 0.1 }}
-          whileHover={{ rotateX: 6, rotateY: -6, scale: 1.03 }}
+        <motion.aside
+          className="profile-panel"
+          initial={{ opacity: 0, scale: 0.96 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.7, delay: 0.12 }}
         >
           <img src={profileImage} alt="Mohammed Muneeb ur Rahman portrait" />
-          <div className="profile-meta">
-            <h3>Open to AI/ML + Full-Stack Roles</h3>
-            <p>Hyderabad, India</p>
+          <div>
+            <p>Open to AI/ML + Full-Stack Roles</p>
+            <h2>AI intern, web lead, hackathon builder, and research-minded developer.</h2>
           </div>
-        </motion.div>
+        </motion.aside>
       </header>
 
-      <section className="section">
-        <h2>Featured Projects</h2>
-        <p className="swipe-hint">Swipe -&gt;</p>
+      <section id="projects" className="content-section">
+        <SectionHeader
+          eyebrow="Selected Work"
+          title="Projects With Product Shape"
+          text="AI systems, analytics tools, Web3 risk prototypes, and applied ML platforms."
+        />
         <div className="project-grid">
           {featuredProjects.map((project) => (
-            <motion.article
-              key={project.title}
-              className="project-card glass-card"
-              whileHover={{ y: -10, rotateX: 5, rotateY: -5 }}
-              transition={{ type: 'spring', stiffness: 180, damping: 16 }}
-            >
+            <motion.article key={project.title} className="card project-card" whileHover={{ y: -5 }}>
               <h3>{project.title}</h3>
               <p className="project-lead">{project.desc}</p>
-              <p className="project-detail">{project.detail}</p>
-              <ul className="project-highlights">
-                {project.highlights.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
+              <p>{project.detail}</p>
+              <ul>
+                {project.highlights.map((item) => <li key={item}>{item}</li>)}
               </ul>
               <small>{project.tech}</small>
+              <button className="card-action" type="button" onClick={() => setSelectedProject(project)}>
+                View details
+              </button>
             </motion.article>
           ))}
         </div>
       </section>
 
-      <section className="section two-col">
-        <p className="swipe-hint">Swipe -&gt;</p>
-        <div className="glass-card">
-          <h2>Experience Narrative</h2>
-          <p className="experience-intro">
-            Roles where I combined AI engineering, product thinking, and leadership to deliver measurable outcomes.
-          </p>
+      <section className="content-section">
+        <SectionHeader
+          eyebrow="Currently Exploring"
+          title="What I Am Building Toward"
+          text="A focused learning track around production-grade AI systems, infrastructure, and intelligent automation."
+        />
+        <div className="explore-grid">
+          {currentlyExploring.map((item) => (
+            <article key={item.title} className="card explore-card">
+              <h3>{item.title}</h3>
+              <p>{item.text}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section id="experience" className="content-section split-layout">
+        <div>
+          <SectionHeader eyebrow="Experience" title="Where The Work Happened" />
           <div className="timeline">
             {experience.map((item) => (
-              <motion.article
-                key={`${item.role}-${item.org}`}
-                className="timeline-item"
-                whileHover={{ x: 6, y: -2 }}
-                transition={{ type: 'spring', stiffness: 180, damping: 16 }}
-              >
-                <div className="timeline-head">
+              <article key={`${item.role}-${item.org}`} className="timeline-item">
+                <div>
                   <h3>{item.role}</h3>
                   <span>{item.period}</span>
                 </div>
                 <p className="timeline-org">{item.org}</p>
-                <p className="timeline-impact">{item.impact}</p>
-                <div className="timeline-tags">
-                  {item.highlights.map((tag) => (
-                    <span key={tag}>{tag}</span>
-                  ))}
-                </div>
-              </motion.article>
+                <p>{item.impact}</p>
+              </article>
             ))}
           </div>
         </div>
-        <div className="glass-card">
-          <h2>Skills Intelligence Dashboard</h2>
+
+        <div>
+          <SectionHeader eyebrow="Skills" title="Core Strengths" />
           <div className="skills-grid">
             {skillTracks.map((skill) => (
-              <motion.article
-                key={skill.name}
-                className="skill-card"
-                whileHover={{ y: -5, scale: 1.01 }}
-                transition={{ type: 'spring', stiffness: 180, damping: 15 }}
-              >
+              <article key={skill.name} className="skill-card">
                 <div className="skill-head">
                   <h3>{skill.name}</h3>
                   <span>{skill.level}%</span>
                 </div>
-                <div className="skill-meter" role="presentation">
+                <div className="skill-meter">
                   <motion.div
-                    className="skill-meter-fill"
                     initial={{ width: 0 }}
                     whileInView={{ width: `${skill.level}%` }}
                     viewport={{ once: true }}
-                    transition={{ duration: 0.9, ease: 'easeOut' }}
+                    transition={{ duration: 0.8 }}
                   />
                 </div>
-                <div className="skill-tags">
-                  {skill.tags.map((tag) => (
-                    <span key={tag}>{tag}</span>
-                  ))}
+                <div className="tag-row">
+                  {skill.tags.map((tag) => <span key={tag}>{tag}</span>)}
                 </div>
-              </motion.article>
+              </article>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="section">
-        <h2>Hackathons & Competitive Achievements</h2>
-        <p className="swipe-hint">Swipe -&gt;</p>
-        <div className="hackathon-grid">
+      <section className="content-section">
+        <SectionHeader eyebrow="Recognition" title="Hackathons & Competitive Achievements" />
+        <div className="achievement-grid">
           {hackathons.map((hackathon) => (
-            <motion.article
-              key={hackathon.name}
-              className="hackathon-card glass-card"
-              whileHover={{ y: -8 }}
-              transition={{ type: 'spring', stiffness: 170, damping: 15 }}
-            >
-              <p className="result-chip">
-                <FaTrophy /> {hackathon.result}
-              </p>
+            <article key={hackathon.name} className="card achievement-card">
+              <p className="result-chip"><FaTrophy /> {hackathon.result}</p>
               <h3>{hackathon.name}</h3>
               <p>{hackathon.detail}</p>
-            </motion.article>
+            </article>
           ))}
         </div>
       </section>
 
-      <section className="section">
-        <h2>Certificates & Licenses</h2>
-        <p className="swipe-hint">Swipe -&gt;</p>
+      <section id="certificates" className="content-section">
+        <SectionHeader eyebrow="Proof Of Work" title="Certificates & Licenses" />
         <div className="certificate-grid">
           {certificates.map((certificate) => (
-            <motion.article
+            <button
               key={certificate.title}
-              className="certificate-card glass-card"
-              whileHover={{ y: -8, scale: 1.01 }}
-              transition={{ type: 'spring', stiffness: 190, damping: 16 }}
+              className="card certificate-card"
+              type="button"
+              onClick={() => setSelectedCertificate(certificate)}
             >
               <img src={certificate.image} alt={certificate.title} />
-              <div className="certificate-meta">
+              <div>
                 <h3>{certificate.title}</h3>
                 <p>{certificate.caption}</p>
               </div>
-            </motion.article>
+            </button>
           ))}
         </div>
       </section>
 
-      <section className="section">
-        <h2>Hobbies & Extracurricular Activities</h2>
-        <p className="swipe-hint">Swipe -&gt;</p>
-        <div className="hobbies-grid">
-          {hobbies.map((hobby) => (
-            <motion.article
-              key={hobby.title}
-              className="hobby-card glass-card"
-              whileHover={{ y: -8, rotateX: 4 }}
-              transition={{ type: 'spring', stiffness: 170, damping: 14 }}
-            >
-              <h3>{hobby.title}</h3>
-              <p>{hobby.text}</p>
-            </motion.article>
-          ))}
+      <section className="content-section closing-section">
+        <div>
+          <SectionHeader eyebrow="Beyond Code" title="The Person Around The Work" />
+          <div className="hobby-row">
+            {hobbies.map((hobby) => <span key={hobby}>{hobby}</span>)}
+          </div>
+        </div>
+        <div className="contact-card">
+          <h2>Let us build something exceptional.</h2>
+          <p>
+            Reach me at <a href={gmailComposeUrl} target="_blank" rel="noreferrer">mohammedmuneebhere@gmail.com</a>
+            {' '}or explore my work profiles.
+          </p>
+          <div className="footer-links">
+            <a href="https://github.com/mohammedmuneebhere-debug" target="_blank" rel="noreferrer">GitHub <FaExternalLinkAlt /></a>
+            <a href="https://www.linkedin.com/in/mohammed-muneeb-ur-rahman-a2b02b265/" target="_blank" rel="noreferrer">LinkedIn <FaExternalLinkAlt /></a>
+            <a href="/Muneeb-CV.pdf" download>Resume <FaDownload /></a>
+          </div>
         </div>
       </section>
 
-      <footer className="section footer glass-card">
-        <h2>Let us build something exceptional.</h2>
-        <p>
-          Reach me at{' '}
-          <a href={gmailComposeUrl} target="_blank" rel="noreferrer">
-            mohammedmuneebhere@gmail.com
-          </a>{' '}
-          or explore my
-          work profiles.
-        </p>
-        <div className="footer-links">
-          <a href="https://github.com/mohammedmuneebhere-debug" target="_blank" rel="noreferrer">
-            GitHub <FaExternalLinkAlt />
-          </a>
-          <a href="https://www.linkedin.com/in/mohammed-muneeb-ur-rahman-a2b02b265/" target="_blank" rel="noreferrer">
-            LinkedIn <FaExternalLinkAlt />
-          </a>
+      {selectedProject ? (
+        <div className="modal-backdrop" role="presentation" onClick={() => setSelectedProject(null)}>
+          <section className="detail-modal" role="dialog" aria-modal="true" aria-label={selectedProject.title} onClick={(event) => event.stopPropagation()}>
+            <button className="modal-close" type="button" onClick={() => setSelectedProject(null)} aria-label="Close project details">
+              <FaTimes />
+            </button>
+            <p className="eyebrow">Project Detail</p>
+            <h2>{selectedProject.title}</h2>
+            <p className="modal-lead">{selectedProject.desc}</p>
+            <div className="modal-grid">
+              <div>
+                <h3>Approach</h3>
+                <p>{selectedProject.detail}</p>
+              </div>
+              <div>
+                <h3>Outcome</h3>
+                <p>{selectedProject.outcome}</p>
+              </div>
+            </div>
+            <div className="modal-tags">
+              {selectedProject.highlights.map((item) => <span key={item}>{item}</span>)}
+            </div>
+            <small>{selectedProject.tech}</small>
+          </section>
         </div>
-      </footer>
-    </div>
+      ) : null}
+
+      {selectedCertificate ? (
+        <div className="modal-backdrop" role="presentation" onClick={() => setSelectedCertificate(null)}>
+          <section className="certificate-modal" role="dialog" aria-modal="true" aria-label={selectedCertificate.title} onClick={(event) => event.stopPropagation()}>
+            <button className="modal-close" type="button" onClick={() => setSelectedCertificate(null)} aria-label="Close certificate preview">
+              <FaTimes />
+            </button>
+            <img src={selectedCertificate.image} alt={selectedCertificate.title} />
+            <div>
+              <p className="eyebrow">Certificate Preview</p>
+              <h2>{selectedCertificate.title}</h2>
+              <p>{selectedCertificate.caption}</p>
+            </div>
+          </section>
+        </div>
+      ) : null}
+    </main>
   )
 }
 
