@@ -1,18 +1,28 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap');
+
 :root {
-  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-  color: #f4f7ff;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  --jarvis-cyan: #00e5ff;
+  --jarvis-cyan-dim: rgba(0, 229, 255, 0.55);
+  --jarvis-gold: #ffc107;
+  --jarvis-gold-dim: rgba(255, 193, 7, 0.45);
+  --jarvis-bg: #02060f;
+  --jarvis-panel: rgba(4, 14, 28, 0.78);
+  --jarvis-border: rgba(0, 229, 255, 0.22);
+  --jarvis-text: #e8f7ff;
+  --jarvis-muted: #8eb4c9;
+  --font-display: 'Orbitron', sans-serif;
+  --font-body: 'Rajdhani', sans-serif;
+  --font-mono: 'Share Tech Mono', monospace;
 }
 
 *,
 *::before,
 *::after {
   box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 html,
@@ -24,10 +34,26 @@ body,
 
 body {
   margin: 0;
-  background: #060913;
-  color: #f4f7ff;
+  background: var(--jarvis-bg);
+  color: var(--jarvis-text);
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.5;
+  overflow-x: hidden;
+  cursor: none;
 }
 
 a {
   color: inherit;
+}
+
+::selection {
+  background: rgba(0, 229, 255, 0.28);
+  color: #fff;
+}
+
+@media (max-width: 768px) {
+  body {
+    cursor: auto;
+  }
 }
