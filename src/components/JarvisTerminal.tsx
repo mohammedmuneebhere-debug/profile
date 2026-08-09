@@ -1,6 +1,8 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { systemBrand } from '../data/portfolio'
+import LiquidGlass from './LiquidGlass'
+import { holoTerminalVariants } from '../lib/hologramMotion'
 
 type TerminalLine = {
   id: number
@@ -119,16 +121,12 @@ export default function JarvisTerminal({ onNavigate }: JarvisTerminalProps) {
         <kbd>Ctrl+J</kbd>
       </button>
 
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {expanded ? (
-          <motion.div
-            className="terminal-panel"
-            initial={{ opacity: 0, y: 24, height: 0 }}
-            animate={{ opacity: 1, y: 0, height: 'auto' }}
-            exit={{ opacity: 0, y: 16, height: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <div className="terminal-log" ref={logRef}>
+          <motion.div className="terminal-panel-wrap" variants={holoTerminalVariants} initial="hidden" animate="visible" exit="exit">
+            <LiquidGlass className="terminal-panel" intensity="medium">
+              <span className="terminal-holo-beam" aria-hidden="true" />
+              <div className="terminal-log" ref={logRef}>
               {lines.map((line) => (
                 <p key={line.id} className={`terminal-line terminal-line-${line.type}`}>
                   {line.text}
@@ -153,6 +151,7 @@ export default function JarvisTerminal({ onNavigate }: JarvisTerminalProps) {
                 autoComplete="off"
               />
             </form>
+            </LiquidGlass>
           </motion.div>
         ) : null}
       </AnimatePresence>

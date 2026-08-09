@@ -1,0 +1,288 @@
+.liquid-glass-svg {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.liquid-glass {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  border-radius: inherit;
+}
+
+.liquid-glass-filter {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  backdrop-filter: blur(32px) saturate(175%) brightness(1.08);
+  -webkit-backdrop-filter: blur(32px) saturate(175%) brightness(1.08);
+  filter: url(#liquid-glass-distort);
+  opacity: 0.32;
+  z-index: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+
+.liquid-glass:hover .liquid-glass-filter {
+  opacity: 0.5;
+}
+
+.liquid-glass-bg {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.02) 38%, rgba(255, 255, 255, 0.08) 100%),
+    linear-gradient(180deg, rgba(0, 229, 255, 0.06) 0%, rgba(8, 14, 28, 0.42) 55%, rgba(4, 8, 18, 0.55) 100%);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.liquid-glass-shine {
+  position: absolute;
+  width: 180%;
+  height: 180%;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(
+    circle at center,
+    rgba(255, 255, 255, 0.28) 0%,
+    rgba(255, 255, 255, 0.08) 22%,
+    transparent 58%
+  );
+  mix-blend-mode: overlay;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+.liquid-glass-caustic {
+  position: absolute;
+  inset: -80%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    rgba(0, 229, 255, 0.06) 60deg,
+    transparent 120deg,
+    rgba(196, 181, 253, 0.05) 200deg,
+    transparent 280deg,
+    rgba(0, 229, 255, 0.04) 340deg,
+    transparent 360deg
+  );
+  animation: liquidCausticSpin 14s linear infinite;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.55;
+}
+
+@keyframes liquidCausticSpin {
+  to { transform: rotate(360deg); }
+}
+
+.liquid-glass-edge {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.62) 0%,
+    rgba(255, 255, 255, 0.08) 32%,
+    rgba(255, 255, 255, 0.04) 50%,
+    rgba(255, 255, 255, 0.18) 72%,
+    rgba(255, 255, 255, 0.5) 100%
+  );
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: xor;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.liquid-glass-ripple {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    ellipse 80% 40% at 50% 0%,
+    rgba(255, 255, 255, 0.16),
+    transparent 70%
+  );
+  z-index: 2;
+  pointer-events: none;
+  animation: liquidRipple 6s ease-in-out infinite;
+}
+
+@keyframes liquidRipple {
+  0%, 100% { opacity: 0.5; transform: scaleY(1); }
+  50% { opacity: 0.85; transform: scaleY(1.04); }
+}
+
+.liquid-glass-content {
+  position: relative;
+  z-index: 5;
+}
+
+.liquid-glass-soft .liquid-glass-filter {
+  backdrop-filter: blur(18px) saturate(150%) brightness(1.04);
+  -webkit-backdrop-filter: blur(18px) saturate(150%) brightness(1.04);
+}
+
+.liquid-glass-strong .liquid-glass-filter {
+  backdrop-filter: blur(40px) saturate(190%) brightness(1.1);
+  -webkit-backdrop-filter: blur(40px) saturate(190%) brightness(1.1);
+  opacity: 0.38;
+}
+
+.liquid-glass-strong:hover .liquid-glass-filter {
+  opacity: 0.62;
+}
+
+.liquid-glass-lite .liquid-glass-bg {
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.02) 40%, rgba(255, 255, 255, 0.06) 100%),
+    linear-gradient(180deg, rgba(0, 229, 255, 0.04) 0%, rgba(8, 14, 28, 0.5) 100%);
+}
+
+.liquid-glass-lite .liquid-glass-edge {
+  opacity: 0.85;
+}
+
+/* Apply liquid glass to UI shells */
+.spatial-dock.liquid-glass,
+.hero-liquid-panel.liquid-glass,
+.profile-liquid-panel.liquid-glass,
+.glass-section .liquid-glass,
+.jarvis-modal.liquid-glass,
+.terminal-panel.liquid-glass {
+  border-radius: var(--spatial-radius-lg);
+}
+
+.spatial-dock.liquid-glass {
+  border-radius: var(--spatial-radius-pill);
+}
+
+.jarvis-btn.liquid-glass {
+  border-radius: 14px;
+}
+
+.metric-chip.liquid-glass,
+.profile-data.liquid-glass {
+  border-radius: 16px;
+}
+
+.hologram-liquid-shell {
+  height: 100%;
+  min-height: 100%;
+  border-radius: var(--spatial-radius);
+}
+
+.hologram-frame .hologram-liquid-shell .liquid-glass-content {
+  padding: 0;
+}
+
+.hologram-frame {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+.hologram-frame::after {
+  display: none;
+}
+
+.hero-liquid-panel,
+.profile-liquid-panel,
+.modal-liquid-fill {
+  border-radius: var(--spatial-radius-lg);
+}
+
+.modal-liquid-fill {
+  min-height: 100%;
+}
+
+.modal-liquid-fill .liquid-glass-content {
+  padding: 1.25rem;
+}
+
+.certificate-liquid-fill .liquid-glass-content {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(220px, 0.8fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.terminal-panel-wrap {
+  overflow: hidden;
+}
+
+.terminal-panel.liquid-glass {
+  border-radius: 0;
+}
+
+.terminal-panel .liquid-glass-content {
+  padding: 0;
+}
+
+/* Liquid glass buttons */
+.jarvis-btn {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: transparent !important;
+  border-color: transparent !important;
+}
+
+.jarvis-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.03) 45%, rgba(255, 255, 255, 0.1));
+  backdrop-filter: blur(20px) saturate(170%);
+  -webkit-backdrop-filter: blur(20px) saturate(170%);
+  z-index: 0;
+}
+
+.jarvis-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0.06) 50%, rgba(255, 255, 255, 0.3));
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: xor;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.jarvis-btn > * {
+  position: relative;
+  z-index: 1;
+}
+
+.jarvis-btn-primary::before {
+  background:
+    linear-gradient(135deg, rgba(0, 229, 255, 0.85), rgba(0, 184, 212, 0.75)),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.25), transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .liquid-glass-caustic,
+  .liquid-glass-ripple {
+    animation: none;
+  }
+
+  .liquid-glass-filter {
+    filter: none;
+  }
+}

@@ -12,8 +12,15 @@ import {
 } from 'react-icons/fa'
 import BootSequence from './components/BootSequence'
 import GlitchText from './components/GlitchText'
+import HoloGrid from './components/HoloGrid'
+import LiquidGlass from './components/LiquidGlass'
+import LiquidGlassFilters from './components/LiquidGlassFilters'
 import HologramFrame from './components/HologramFrame'
+import SpatialDock from './components/SpatialDock'
+import GlassSection from './components/GlassSection'
+import SpatialBackground from './components/SpatialBackground'
 import HUDOverlay from './components/HUDOverlay'
+import HUDCursor from './components/HUDCursor'
 import JarvisScene from './components/JarvisScene'
 import JarvisTerminal from './components/JarvisTerminal'
 import { certificates } from './data/certificates'
@@ -31,22 +38,31 @@ import {
   systemBrand,
 } from './data/portfolio'
 import profileImage from './assets/profile.png'
+import {
+  holoHeaderVariants,
+  holoHeroPanelVariants,
+  holoHeroProfileVariants,
+  holoModalBackdropVariants,
+  holoModalVariants,
+} from './lib/hologramMotion'
+import './styles/liquid-glass.css'
 import './App.css'
 
 function SectionHeader({ eyebrow, title, text }: { eyebrow: string; title: string; text?: string }) {
   return (
     <motion.div
       className="section-header"
-      initial={{ opacity: 0, x: -16 }}
-      whileInView={{ opacity: 1, x: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5 }}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: '-40px' }}
+      variants={holoHeaderVariants}
     >
-      <p className="section-eyebrow">
+      <motion.p className="section-eyebrow" variants={holoHeaderVariants}>
         <FaMicrochip /> {eyebrow}
-      </p>
-      <h2>{title}</h2>
-      {text ? <span>{text}</span> : null}
+      </motion.p>
+      <motion.h2 variants={holoHeaderVariants}>{title}</motion.h2>
+      {text ? <motion.span variants={holoHeaderVariants}>{text}</motion.span> : null}
+      <span className="section-header-line" aria-hidden="true" />
     </motion.div>
   )
 }
@@ -78,39 +94,36 @@ function App() {
 
   return (
     <>
+      <LiquidGlassFilters />
+      <HUDCursor />
       {!booted ? <BootSequence onComplete={() => setBooted(true)} /> : null}
 
       <main className={`jarvis-shell ${booted ? 'is-booted' : ''}`}>
-        <JarvisScene />
-        <HUDOverlay />
+        {booted ? (
+          <>
+            <JarvisScene />
+            <SpatialBackground />
+            <HUDOverlay />
+          </>
+        ) : null}
 
         <div className="jarvis-content">
-          <nav className="jarvis-nav">
-            <a href="#home" className="jarvis-brand" onClick={() => setActiveNav('home')}>
-              <span className="brand-arc" />
-              {systemBrand.name}
-            </a>
-            <div className="jarvis-nav-links">
-              {navItems.map((item) => (
-                <a
-                  key={item.id}
-                  href={`#${item.id}`}
-                  className={activeNav === item.id ? 'is-active' : ''}
-                  onClick={() => setActiveNav(item.id)}
-                >
-                  {item.label}
-                </a>
-              ))}
-            </div>
-          </nav>
+          <SpatialDock
+            brand={systemBrand.name}
+            items={navItems}
+            activeId={activeNav}
+            onSelect={setActiveNav}
+            booted={booted}
+          />
 
           <header id="home" className="jarvis-hero">
             <motion.section
               className="hero-panel"
-              initial={{ opacity: 0, y: 40 }}
-              animate={booted ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.8, delay: 0.15 }}
+              initial="hidden"
+              animate={booted ? 'visible' : 'hidden'}
+              variants={holoHeroPanelVariants}
             >
+              <LiquidGlass className="hero-liquid-panel" intensity="strong">
               <p className="hero-eyebrow">{profile.tagline}</p>
               <GlitchText text={profile.name} className="hero-title" />
               <p className="hero-subtitle">{profile.title}</p>
@@ -132,31 +145,33 @@ function App() {
               </div>
 
               <div className="hero-metrics">
-                <div className="metric-chip">
+                <LiquidGlass className="metric-chip" intensity="soft" variant="lite">
                   <span>AI/ML PIPELINES</span>
                   <strong>GenAI + ML</strong>
-                </div>
-                <div className="metric-chip">
+                </LiquidGlass>
+                <LiquidGlass className="metric-chip" intensity="soft" variant="lite">
                   <span>FEATURED BUILDS</span>
                   <strong>6+</strong>
-                </div>
-                <div className="metric-chip">
+                </LiquidGlass>
+                <LiquidGlass className="metric-chip" intensity="soft" variant="lite">
                   <span>LOCATION</span>
                   <strong>Hyderabad</strong>
-                </div>
-                <div className="metric-chip">
+                </LiquidGlass>
+                <LiquidGlass className="metric-chip" intensity="soft" variant="lite">
                   <span>PHONE</span>
                   <strong>{profile.phone}</strong>
-                </div>
+                </LiquidGlass>
               </div>
+              </LiquidGlass>
             </motion.section>
 
             <motion.aside
               className="profile-hologram"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={booted ? { opacity: 1, scale: 1 } : {}}
-              transition={{ duration: 0.8, delay: 0.3 }}
+              initial="hidden"
+              animate={booted ? 'visible' : 'hidden'}
+              variants={holoHeroProfileVariants}
             >
+              <LiquidGlass className="profile-liquid-panel" intensity="strong">
               <div className="profile-ring">
                 <div className="profile-ring-inner">
                   <img src={profileImage} alt={`${profile.name} portrait`} />
@@ -170,36 +185,37 @@ function App() {
                   <span>INTERFACE: {systemBrand.name}</span>
                 </div>
               </div>
+              </LiquidGlass>
             </motion.aside>
           </header>
 
-          <section id="about" className="jarvis-section">
+          <GlassSection id="about" from="left">
             <SectionHeader
               eyebrow="Professional Summary"
               title="Who I Am & What I Build"
               text="AI & DS engineering student with applied experience across GenAI, ML pipelines, full-stack development, and technical leadership."
             />
-            <div className="summary-grid">
-              {professionalSummary.map((paragraph, index) => (
-                <HologramFrame key={paragraph.slice(0, 32)} className="summary-card" delay={index * 0.06}>
+            <HoloGrid className="summary-grid">
+              {professionalSummary.map((paragraph) => (
+                <HologramFrame key={paragraph.slice(0, 32)} className="summary-card" staggered>
                   <p>{paragraph}</p>
                 </HologramFrame>
               ))}
-            </div>
-          </section>
+            </HoloGrid>
+          </GlassSection>
 
-          <section id="projects" className="jarvis-section">
+          <GlassSection id="projects" from="right">
             <SectionHeader
               eyebrow="Selected Work"
               title="Projects With Product Shape"
               text="AI systems, analytics tools, Web3 risk prototypes, credit intelligence platforms, and applied ML builds."
             />
-            <div className="project-grid">
+            <HoloGrid className="project-grid">
               {featuredProjects.map((project, index) => (
                 <HologramFrame
                   key={project.title}
                   className="project-card"
-                  delay={index * 0.06}
+                  staggered
                   onClick={() => setSelectedProject(project)}
                 >
                   <div className="card-index">0{index + 1}</div>
@@ -216,35 +232,35 @@ function App() {
                   <span className="card-cta">View full dossier →</span>
                 </HologramFrame>
               ))}
-            </div>
-          </section>
+            </HoloGrid>
+          </GlassSection>
 
-          <section className="jarvis-section">
+          <GlassSection from="bottom">
             <SectionHeader
               eyebrow="Currently Exploring"
               title="What I Am Building Toward"
               text="A focused learning track around production-grade AI systems, infrastructure, and intelligent automation."
             />
-            <div className="explore-grid">
-              {currentlyExploring.map((item, index) => (
-                <HologramFrame key={item.title} className="explore-card" delay={index * 0.05}>
+            <HoloGrid className="explore-grid">
+              {currentlyExploring.map((item) => (
+                <HologramFrame key={item.title} className="explore-card" staggered>
                   <h3>{item.title}</h3>
                   <p>{item.text}</p>
                 </HologramFrame>
               ))}
-            </div>
-          </section>
+            </HoloGrid>
+          </GlassSection>
 
-          <section id="experience" className="jarvis-section split-section">
+          <GlassSection id="experience" className="split-section" from="left">
             <div>
               <SectionHeader
                 eyebrow="Experience"
                 title="Where The Work Happened"
                 text="Internships, leadership roles, real-world projects, and freelance builds across AI, web, and data analytics."
               />
-              <div className="timeline">
-                {experience.map((item, index) => (
-                  <HologramFrame key={`${item.role}-${item.org}`} className="timeline-card" delay={index * 0.05}>
+              <HoloGrid className="timeline">
+                {experience.map((item) => (
+                  <HologramFrame key={`${item.role}-${item.org}`} className="timeline-card" staggered>
                     <div className="timeline-head">
                       <h3>{item.role}</h3>
                       <span>{item.period}</span>
@@ -253,7 +269,7 @@ function App() {
                     <p>{item.impact}</p>
                   </HologramFrame>
                 ))}
-              </div>
+              </HoloGrid>
             </div>
 
             <div id="skills">
@@ -262,9 +278,9 @@ function App() {
                 title="Core Strengths"
                 text="Generative AI, machine learning, full-stack engineering, deep learning research, and Web3-AI integration."
               />
-              <div className="skills-grid">
-                {skillTracks.map((skill, index) => (
-                  <HologramFrame key={skill.name} className="skill-card" delay={index * 0.05}>
+              <HoloGrid className="skills-grid">
+                {skillTracks.map((skill) => (
+                  <HologramFrame key={skill.name} className="skill-card" staggered>
                     <div className="skill-head">
                       <h3>{skill.name}</h3>
                       <span>{skill.level}%</span>
@@ -274,7 +290,7 @@ function App() {
                         initial={{ width: 0 }}
                         whileInView={{ width: `${skill.level}%` }}
                         viewport={{ once: true }}
-                        transition={{ duration: 1, delay: 0.2 }}
+                        transition={{ type: 'spring', stiffness: 45, damping: 22, mass: 1, delay: 0.15 }}
                       />
                     </div>
                     <div className="tag-row">
@@ -284,19 +300,19 @@ function App() {
                     </div>
                   </HologramFrame>
                 ))}
-              </div>
+              </HoloGrid>
             </div>
-          </section>
+          </GlassSection>
 
-          <section id="education" className="jarvis-section">
+          <GlassSection id="education" from="right">
             <SectionHeader
               eyebrow="Education"
               title="Academic Foundation"
               text="B.Tech in Artificial Intelligence & Data Science with a strong academic track across engineering and pre-university studies."
             />
-            <div className="education-grid">
-              {education.map((item, index) => (
-                <HologramFrame key={item.degree} className="education-card" delay={index * 0.05}>
+            <HoloGrid className="education-grid">
+              {education.map((item) => (
+                <HologramFrame key={item.degree} className="education-card" staggered>
                   <div className="timeline-head">
                     <h3>{item.degree}</h3>
                     <span>{item.period}</span>
@@ -305,18 +321,18 @@ function App() {
                   <p>{item.detail}</p>
                 </HologramFrame>
               ))}
-            </div>
-          </section>
+            </HoloGrid>
+          </GlassSection>
 
-          <section className="jarvis-section">
+          <GlassSection from="left">
             <SectionHeader
               eyebrow="Recognition"
               title="Hackathons & Competitive Achievements"
               text="National-level hackathons, Web3 competitions, and rapid prototyping under time pressure."
             />
-            <div className="achievement-grid">
-              {hackathons.map((hackathon, index) => (
-                <HologramFrame key={hackathon.name} className="achievement-card" delay={index * 0.05}>
+            <HoloGrid className="achievement-grid">
+              {hackathons.map((hackathon) => (
+                <HologramFrame key={hackathon.name} className="achievement-card" staggered>
                   <p className="result-chip">
                     <FaTrophy /> {hackathon.result}
                   </p>
@@ -324,21 +340,21 @@ function App() {
                   <p>{hackathon.detail}</p>
                 </HologramFrame>
               ))}
-            </div>
-          </section>
+            </HoloGrid>
+          </GlassSection>
 
-          <section id="certificates" className="jarvis-section">
+          <GlassSection id="certificates" from="bottom">
             <SectionHeader
               eyebrow="Proof Of Work"
               title="Certificates & Licenses"
               text="Google Cloud AI badges, research publication, internship completions, workshop certifications, and competition achievements."
             />
-            <div className="certificate-grid">
-              {certificates.map((certificate, index) => (
+            <HoloGrid className="certificate-grid">
+              {certificates.map((certificate) => (
                 <HologramFrame
                   key={certificate.title}
                   className="certificate-card"
-                  delay={index * 0.04}
+                  staggered
                   onClick={() => setSelectedCertificate(certificate)}
                 >
                   <img src={certificate.image} alt={certificate.title} />
@@ -348,10 +364,10 @@ function App() {
                   </div>
                 </HologramFrame>
               ))}
-            </div>
-          </section>
+            </HoloGrid>
+          </GlassSection>
 
-          <section id="contact" className="jarvis-section closing-section">
+          <GlassSection id="contact" className="closing-section" from="right">
             <div>
               <SectionHeader
                 eyebrow="Beyond Code"
@@ -390,30 +406,35 @@ function App() {
                 </a>
               </div>
             </HologramFrame>
-          </section>
+          </GlassSection>
         </div>
 
         <JarvisTerminal onNavigate={navigateTo} />
 
-        <AnimatePresence>
+        <AnimatePresence mode="wait">
           {selectedProject ? (
             <motion.div
               className="modal-backdrop"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+              variants={holoModalBackdropVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
               onClick={() => setSelectedProject(null)}
             >
               <motion.section
-                className="jarvis-modal"
+                className="jarvis-modal holo-modal"
                 role="dialog"
                 aria-modal="true"
                 aria-label={selectedProject.title}
-                initial={{ opacity: 0, scale: 0.92, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                variants={holoModalVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
                 onClick={(event) => event.stopPropagation()}
               >
+                <LiquidGlass className="modal-liquid-fill" intensity="strong">
+                <span className="holo-modal-ring" aria-hidden="true" />
+                <span className="holo-modal-scan" aria-hidden="true" />
                 <button
                   className="modal-close"
                   type="button"
@@ -441,30 +462,36 @@ function App() {
                   ))}
                 </div>
                 <small>{selectedProject.tech}</small>
+                </LiquidGlass>
               </motion.section>
             </motion.div>
           ) : null}
         </AnimatePresence>
 
-        <AnimatePresence>
+        <AnimatePresence mode="wait">
           {selectedCertificate ? (
             <motion.div
               className="modal-backdrop"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+              variants={holoModalBackdropVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
               onClick={() => setSelectedCertificate(null)}
             >
               <motion.section
-                className="jarvis-modal certificate-modal"
+                className="jarvis-modal certificate-modal holo-modal"
                 role="dialog"
                 aria-modal="true"
                 aria-label={selectedCertificate.title}
-                initial={{ opacity: 0, scale: 0.92 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
+                variants={holoModalVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
                 onClick={(event) => event.stopPropagation()}
               >
+                <LiquidGlass className="modal-liquid-fill certificate-liquid-fill" intensity="strong">
+                <span className="holo-modal-ring" aria-hidden="true" />
+                <span className="holo-modal-scan" aria-hidden="true" />
                 <button
                   className="modal-close"
                   type="button"
@@ -479,6 +506,7 @@ function App() {
                   <h2>{selectedCertificate.title}</h2>
                   <p>{selectedCertificate.caption}</p>
                 </div>
+                </LiquidGlass>
               </motion.section>
             </motion.div>
           ) : null}

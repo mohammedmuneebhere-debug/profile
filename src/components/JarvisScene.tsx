@@ -1,75 +1,48 @@
 import { Canvas, useFrame } from '@react-three/fiber'
 import { Float, Stars } from '@react-three/drei'
-import { useMemo, useRef } from 'react'
-import type { Mesh } from 'three'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
+import SciFiHUDCore from './SciFiHUDCore'
+import { getDevicePixelRatio, isLowPowerDevice } from '../lib/performance'
 
-function ArcReactorCore() {
-  const coreRef = useRef<Mesh>(null)
-  const ringARef = useRef<Mesh>(null)
-  const ringBRef = useRef<Mesh>(null)
-  const ringCRef = useRef<Mesh>(null)
-
-  useFrame((state) => {
-    const t = state.clock.elapsedTime
-    if (coreRef.current) {
-      coreRef.current.rotation.y = t * 0.35
-      coreRef.current.rotation.x = Math.sin(t * 0.4) * 0.15
-    }
-    if (ringARef.current) ringARef.current.rotation.z = t * 0.55
-    if (ringBRef.current) ringBRef.current.rotation.x = t * 0.42
-    if (ringCRef.current) ringCRef.current.rotation.y = -t * 0.38
-  })
-
+function SpatialGlassPanel({
+  position,
+  rotation,
+  scale,
+}: {
+  position: [number, number, number]
+  rotation?: [number, number, number]
+  scale?: number
+}) {
   return (
-    <Float speed={1.2} rotationIntensity={0.25} floatIntensity={0.35}>
-      <group position={[0, 0, 0]}>
-        <mesh ref={coreRef}>
-          <icosahedronGeometry args={[1.15, 1]} />
-          <meshBasicMaterial color="#00e5ff" wireframe transparent opacity={0.55} />
-        </mesh>
-        <mesh ref={ringARef}>
-          <torusGeometry args={[1.65, 0.02, 16, 120]} />
-          <meshBasicMaterial color="#00e5ff" transparent opacity={0.7} />
-        </mesh>
-        <mesh ref={ringBRef} rotation={[Math.PI / 2.4, 0, 0]}>
-          <torusGeometry args={[2.05, 0.015, 16, 120]} />
-          <meshBasicMaterial color="#ffc107" transparent opacity={0.45} />
-        </mesh>
-        <mesh ref={ringCRef} rotation={[0, Math.PI / 3, Math.PI / 4]}>
-          <torusGeometry args={[2.45, 0.012, 16, 120]} />
-          <meshBasicMaterial color="#00e5ff" transparent opacity={0.35} />
-        </mesh>
-        <mesh>
-          <sphereGeometry args={[0.42, 32, 32]} />
-          <meshBasicMaterial color="#00e5ff" transparent opacity={0.18} />
-        </mesh>
-      </group>
+    <Float speed={1.4} rotationIntensity={0.12} floatIntensity={0.32}>
+      <mesh position={position} rotation={rotation ?? [0, 0, 0]} scale={scale ?? 1}>
+        <planeGeometry args={[2.8, 1.6, 1, 1]} />
+        <meshBasicMaterial color="#00e5ff" transparent opacity={0.04} side={THREE.DoubleSide} />
+      </mesh>
     </Float>
   )
 }
 
-function ParticleField() {
+function ParticleField({ count }: { count: number }) {
   const pointsRef = useRef<THREE.Points>(null)
-  const count = 2800
 
   const positions = useMemo(() => {
     const arr = new Float32Array(count * 3)
     for (let i = 0; i < count; i += 1) {
-      const radius = 8 + Math.random() * 18
+      const radius = 10 + Math.random() * 22
       const theta = Math.random() * Math.PI * 2
       const phi = Math.acos(2 * Math.random() - 1)
       arr[i * 3] = radius * Math.sin(phi) * Math.cos(theta)
       arr[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta)
-      arr[i * 3 + 2] = radius * Math.cos(phi)
+      arr[i * 3 + 2] = radius * Math.cos(phi) - 4
     }
     return arr
-  }, [])
+  }, [count])
 
   useFrame((state) => {
     if (!pointsRef.current) return
-    pointsRef.current.rotation.y = state.clock.elapsedTime * 0.02
-    pointsRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.08) * 0.05
+    pointsRef.current.rotation.y = state.clock.elapsedTime * 0.018
   })
 
   return (
@@ -77,62 +50,83 @@ function ParticleField() {
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" args={[positions, 3]} />
       </bufferGeometry>
-      <pointsMaterial size={0.035} color="#00e5ff" transparent opacity={0.65} sizeAttenuation />
+      <pointsMaterial size={0.026} color="#7dd3fc" transparent opacity={0.45} sizeAttenuation />
     </points>
   )
 }
 
-function HudGrid() {
-  const gridRef = useRef<THREE.GridHelper>(null)
-
-  useFrame((state) => {
-    if (!gridRef.current) return
-    gridRef.current.position.z = (state.clock.elapsedTime * 0.4) % 2
-  })
-
-  return (
-    <gridHelper
-      ref={gridRef}
-      args={[40, 40, '#00e5ff', '#0a1a2a']}
-      position={[0, -3.5, 0]}
-      rotation={[0, 0, 0]}
-    />
-  )
-}
-
-function SceneContent() {
+function SceneContent({ lowPower }: { lowPower: boolean }) {
   const groupRef = useRef<THREE.Group>(null)
+  const pointerSmooth = useRef({ x: 0, y: 0 })
 
-  useFrame((state) => {
+  useFrame((state, delta) => {
     if (!groupRef.current) return
-    const { x, y } = state.pointer
-    groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, x * 0.35, 0.04)
-    groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, -y * 0.2, 0.04)
+    const lerp = Math.min(1, delta * 12)
+    pointerSmooth.current.x = THREE.MathUtils.lerp(pointerSmooth.current.x, state.pointer.x, lerp)
+    pointerSmooth.current.y = THREE.MathUtils.lerp(pointerSmooth.current.y, state.pointer.y, lerp)
+
+    groupRef.current.rotation.y = THREE.MathUtils.lerp(
+      groupRef.current.rotation.y,
+      pointerSmooth.current.x * 0.2,
+      lerp,
+    )
+    groupRef.current.rotation.x = THREE.MathUtils.lerp(
+      groupRef.current.rotation.x,
+      -pointerSmooth.current.y * 0.11,
+      lerp,
+    )
+    groupRef.current.position.z = THREE.MathUtils.lerp(
+      groupRef.current.position.z,
+      -pointerSmooth.current.y * 0.2,
+      lerp,
+    )
   })
 
   return (
     <group ref={groupRef}>
       <ambientLight intensity={0.35} />
-      <pointLight position={[4, 4, 4]} intensity={1.2} color="#00e5ff" />
-      <pointLight position={[-4, -2, 2]} intensity={0.6} color="#ffc107" />
-      <ArcReactorCore />
-      <ParticleField />
-      <HudGrid />
-      <Stars radius={60} depth={40} count={1200} factor={3} saturation={0} fade speed={0.6} />
+      <directionalLight position={[4, 6, 5]} intensity={1.2} color="#dffcff" />
+      <pointLight position={[5, 5, 5]} intensity={1.4} color="#00e5ff" />
+      <pointLight position={[-5, -3, 3]} intensity={0.65} color="#c4b5fd" />
+      <SciFiHUDCore />
+      <ParticleField count={lowPower ? 700 : 1100} />
+      {!lowPower ? (
+        <>
+          <SpatialGlassPanel position={[-3.5, 1.2, -3]} rotation={[0, 0.4, 0.1]} scale={1.2} />
+          <SpatialGlassPanel position={[3.8, -0.8, -4.5]} rotation={[0, -0.5, -0.08]} scale={0.9} />
+          <SpatialGlassPanel position={[0.5, 2.2, -5]} rotation={[0.2, 0.1, 0]} scale={1.4} />
+        </>
+      ) : null}
+      <Stars radius={70} depth={50} count={lowPower ? 280 : 450} factor={2.2} saturation={0} fade speed={0.45} />
     </group>
   )
 }
 
 export default function JarvisScene() {
+  const lowPower = isLowPowerDevice()
+  const [visible, setVisible] = useState(() => typeof document === 'undefined' || !document.hidden)
+  const dpr = getDevicePixelRatio(lowPower ? 1 : 1.25)
+
+  useEffect(() => {
+    const onVisibility = () => setVisible(!document.hidden)
+    document.addEventListener('visibilitychange', onVisibility)
+    return () => document.removeEventListener('visibilitychange', onVisibility)
+  }, [])
+
   return (
-    <div className="jarvis-scene" aria-hidden="true">
+    <div className="jarvis-scene spatial-scene" aria-hidden="true">
       <Canvas
-        camera={{ position: [0, 0.5, 7.5], fov: 52 }}
-        dpr={[1, 1.75]}
-        gl={{ antialias: true, alpha: true }}
+        camera={{ position: [0, 0.2, 7.8], fov: 46 }}
+        dpr={dpr}
+        frameloop={visible ? 'always' : 'demand'}
+        gl={{
+          antialias: !lowPower,
+          alpha: true,
+          powerPreference: 'high-performance',
+        }}
       >
-        <fog attach="fog" args={['#02060f', 8, 28]} />
-        <SceneContent />
+        <fog attach="fog" args={['#030712', 10, 32]} />
+        <SceneContent lowPower={lowPower} />
       </Canvas>
     </div>
   )

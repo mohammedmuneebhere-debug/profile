@@ -9,7 +9,7 @@ export const profile = {
   name: 'Mohammed Muneeb ur Rahman',
   shortName: 'Mohammed Muneeb',
   title: 'AI & DS Engineering @ MCET | AI Intern @ Alfido Tech | Web-Dev Lead @ GDGC MCET',
-  tagline: 'MMR Nexus — Personal Portfolio Interface',
+  tagline: 'MMR Nexus — Spatial Portfolio Interface',
   email: 'mohammedmuneebhere@gmail.com',
   phone: '+91 9059170823',
   location: 'Hyderabad, India',

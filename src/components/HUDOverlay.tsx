@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { useEffect, useState } from 'react'
+import { memo, useEffect, useState } from 'react'
 import { profile, systemModules } from '../data/portfolio'
 
 function CornerBracket({ className }: { className: string }) {
@@ -14,9 +14,39 @@ function CornerBracket({ className }: { className: string }) {
   )
 }
 
+const HUDModule = memo(function HUDModule({
+  mod,
+  index,
+  side,
+}: {
+  mod: (typeof systemModules)[number]
+  index: number
+  side: 'left' | 'right'
+}) {
+  const xOffset = side === 'left' ? -20 : 20
+
+  return (
+    <motion.div
+      className="hud-module"
+      initial={{ opacity: 0, x: xOffset }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: 0.4 + index * 0.12, duration: 0.45, ease: [0.25, 0.1, 0.25, 1] }}
+    >
+      <span>{mod.label}</span>
+      <strong>{mod.status}</strong>
+      <div className="hud-module-bar">
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: `${mod.load}%` }}
+          transition={{ duration: 0.9, delay: 0.55 + index * 0.1, ease: [0.25, 0.1, 0.25, 1] }}
+        />
+      </div>
+    </motion.div>
+  )
+})
+
 export default function HUDOverlay() {
   const [time, setTime] = useState('')
-  const [coords, setCoords] = useState({ x: 0, y: 0 })
 
   useEffect(() => {
     const tick = () => {
@@ -33,14 +63,6 @@ export default function HUDOverlay() {
     tick()
     const interval = window.setInterval(tick, 1000)
     return () => window.clearInterval(interval)
-  }, [])
-
-  useEffect(() => {
-    const handleMove = (event: PointerEvent) => {
-      setCoords({ x: event.clientX, y: event.clientY })
-    }
-    window.addEventListener('pointermove', handleMove)
-    return () => window.removeEventListener('pointermove', handleMove)
   }, [])
 
   return (
@@ -61,58 +83,15 @@ export default function HUDOverlay() {
 
       <div className="hud-side hud-side-left">
         {systemModules.slice(0, 2).map((mod, index) => (
-          <motion.div
-            key={mod.id}
-            className="hud-module"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.4 + index * 0.12 }}
-          >
-            <span>{mod.label}</span>
-            <strong>{mod.status}</strong>
-            <div className="hud-module-bar">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${mod.load}%` }}
-                transition={{ duration: 1.2, delay: 0.6 + index * 0.1 }}
-              />
-            </div>
-          </motion.div>
+          <HUDModule key={mod.id} mod={mod} index={index} side="left" />
         ))}
       </div>
 
       <div className="hud-side hud-side-right">
         {systemModules.slice(2).map((mod, index) => (
-          <motion.div
-            key={mod.id}
-            className="hud-module"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.4 + index * 0.12 }}
-          >
-            <span>{mod.label}</span>
-            <strong>{mod.status}</strong>
-            <div className="hud-module-bar">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${mod.load}%` }}
-                transition={{ duration: 1.2, delay: 0.6 + index * 0.1 }}
-              />
-            </div>
-          </motion.div>
+          <HUDModule key={mod.id} mod={mod} index={index} side="right" />
         ))}
       </div>
-
-      <motion.div
-        className="hud-reticle"
-        animate={{ left: coords.x, top: coords.y }}
-        transition={{ type: 'spring', stiffness: 500, damping: 35, mass: 0.2 }}
-      >
-        <span />
-        <span />
-        <span />
-        <span />
-      </motion.div>
 
       <div className="hud-radar">
         <span className="radar-sweep" />

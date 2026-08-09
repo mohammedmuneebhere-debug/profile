@@ -5,14 +5,48 @@
   z-index: 100;
   display: grid;
   place-items: center;
+  perspective: 1200px;
+  overflow: hidden;
   background:
     radial-gradient(circle at 50% 40%, rgba(0, 229, 255, 0.08), transparent 45%),
     linear-gradient(180deg, #010308, #02060f 60%, #010308);
 }
 
+.boot-holo-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0, 229, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 229, 255, 0.06) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse at center, black 20%, transparent 70%);
+  animation: holoGridDrift 12s linear infinite;
+}
+
+@keyframes holoGridDrift {
+  to { transform: perspective(500px) rotateX(2deg) translateY(48px); }
+}
+
+.boot-scan-wipe {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  transform-origin: top center;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 229, 255, 0.55) 0%,
+    rgba(0, 229, 255, 0.2) 40%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
 .boot-core {
+  position: relative;
+  z-index: 1;
   width: min(520px, 90vw);
   text-align: center;
+  transform-style: preserve-3d;
 }
 
 .boot-reactor {
@@ -112,7 +146,7 @@
   position: relative;
   min-height: 100vh;
   opacity: 0;
-  transition: opacity 0.8s ease;
+  transition: opacity 1.2s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 .jarvis-shell.is-booted {
@@ -134,7 +168,348 @@
 .jarvis-content {
   position: relative;
   z-index: 2;
-  padding: 0 min(5vw, 4rem) 6rem;
+  padding: 5.5rem min(5vw, 4rem) 6rem;
+}
+.spatial-depth-field {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.spatial-hud-core {
+  position: absolute;
+  top: 42%;
+  left: 50%;
+  width: min(58vw, 580px);
+  height: min(58vw, 580px);
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at center, rgba(0, 229, 255, 0.14) 0%, rgba(0, 229, 255, 0.04) 38%, transparent 68%);
+  filter: blur(1px);
+  animation: hudCorePulse 5s ease-in-out infinite;
+}
+
+.spatial-hud-core::before {
+  content: '';
+  position: absolute;
+  inset: 12%;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 229, 255, 0.28);
+  box-shadow:
+    0 0 30px rgba(0, 229, 255, 0.15),
+    inset 0 0 40px rgba(0, 229, 255, 0.06);
+  background:
+    repeating-conic-gradient(
+      from 0deg,
+      rgba(0, 229, 255, 0.14) 0deg 8deg,
+      transparent 8deg 18deg
+    );
+  mask: radial-gradient(circle, black 42%, transparent 72%);
+  animation: hudCoreSpin 14s linear infinite;
+}
+
+.spatial-hud-core::after {
+  content: '';
+  position: absolute;
+  inset: 26%;
+  border-radius: 50%;
+  border: 1px dashed rgba(255, 193, 7, 0.22);
+  box-shadow: 0 0 24px rgba(255, 193, 7, 0.08);
+  animation: hudCoreSpin 22s linear infinite reverse;
+}
+
+@keyframes hudCorePulse {
+  0%, 100% { opacity: 0.8; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.03); }
+}
+
+@keyframes hudCoreSpin {
+  to { transform: rotate(360deg); }
+}
+
+.spatial-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(42px);
+  will-change: transform;
+}
+
+.spatial-orb-a {
+  width: 420px;
+  height: 420px;
+  top: 8%;
+  left: -8%;
+  background: rgba(0, 229, 255, 0.07);
+}
+
+.spatial-orb-b {
+  width: 320px;
+  height: 320px;
+  top: 42%;
+  right: -6%;
+  background: rgba(167, 139, 250, 0.06);
+}
+
+.spatial-orb-c {
+  width: 260px;
+  height: 260px;
+  bottom: 12%;
+  left: 30%;
+  background: rgba(0, 229, 255, 0.05);
+}
+
+.spatial-plane {
+  position: absolute;
+  border: 1px solid rgba(0, 229, 255, 0.08);
+  border-radius: var(--spatial-radius-lg);
+  background: linear-gradient(135deg, rgba(0, 229, 255, 0.04), transparent);
+  backdrop-filter: blur(8px);
+}
+
+.spatial-plane-a {
+  width: 280px;
+  height: 160px;
+  top: 18%;
+  right: 8%;
+  transform: rotateY(-22deg) rotateX(12deg);
+}
+
+.spatial-plane-b {
+  width: 220px;
+  height: 120px;
+  bottom: 22%;
+  left: 6%;
+  transform: rotateY(18deg) rotateX(-8deg);
+}
+
+.spatial-ring {
+  position: absolute;
+  width: 340px;
+  height: 340px;
+  top: 55%;
+  left: 50%;
+  margin-left: -170px;
+  border: 1px solid rgba(0, 229, 255, 0.1);
+  border-radius: 50%;
+  transform: rotateX(72deg);
+  opacity: 0.35;
+}
+
+.spatial-floor-grid {
+  position: absolute;
+  left: -20%;
+  right: -20%;
+  bottom: -30%;
+  height: 60%;
+  background-image:
+    linear-gradient(rgba(0, 229, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 229, 255, 0.06) 1px, transparent 1px);
+  background-size: 64px 64px;
+  transform: rotateX(78deg);
+  transform-origin: center top;
+  mask-image: linear-gradient(to top, black, transparent 75%);
+  opacity: 0.4;
+}
+
+.spatial-scene {
+  opacity: 0.85;
+}
+
+.spatial-dock-wrap {
+  position: fixed;
+  top: 1rem;
+  left: 50%;
+  translate: -50% 0;
+  z-index: 50;
+  width: min(96vw, 1100px);
+}
+
+.spatial-dock {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.55rem 0.65rem 0.55rem 0.85rem;
+  border-radius: var(--spatial-radius-pill);
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.spatial-dock-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--jarvis-cyan);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.spatial-dock-orb {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--jarvis-cyan);
+  box-shadow: 0 0 14px var(--jarvis-cyan);
+}
+
+.spatial-dock-links {
+  display: flex;
+  gap: 0.2rem;
+  overflow-x: auto;
+  padding: 0.1rem;
+}
+
+.spatial-dock-links a {
+  padding: 0.42rem 0.75rem;
+  border-radius: var(--spatial-radius-pill);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  color: var(--jarvis-muted);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: all 0.35s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.spatial-dock-links a:hover,
+.spatial-dock-links a.is-active {
+  color: var(--jarvis-text);
+  background: rgba(0, 229, 255, 0.12);
+  box-shadow: 0 4px 16px rgba(0, 229, 255, 0.1);
+}
+
+/* ─── Liquid glass components (flat layout) ─── */
+.glass-section {
+  position: relative;
+  z-index: 2;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 500px;
+}
+
+.glass-card-lite {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--spatial-radius);
+  background:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0.02) 42%, rgba(0, 229, 255, 0.04) 100%),
+    rgba(6, 12, 24, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 12px 32px rgba(0, 0, 0, 0.22);
+  contain: layout style paint;
+}
+
+.glass-card-lite::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0.12), transparent 45%);
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.glass-card-lite:hover {
+  border-color: rgba(0, 229, 255, 0.28);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 16px 40px rgba(0, 229, 255, 0.1);
+}
+
+.glass-card {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+.hero-liquid-panel .liquid-glass-content {
+  padding: 1.25rem 1.35rem;
+}
+
+.profile-liquid-panel .liquid-glass-content {
+  padding: 0.85rem;
+}
+
+.profile-data {
+  margin-top: 0.75rem;
+  padding: 0.85rem;
+  border-radius: 16px;
+  background: rgba(0, 229, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.spatial-scene {
+  opacity: 0.85;
+}
+
+.holo-section {
+  position: relative;
+}
+
+.holo-section-beam {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 0;
+  background: linear-gradient(180deg, var(--jarvis-cyan), transparent);
+  box-shadow: 0 0 16px var(--jarvis-cyan);
+  animation: holoBeamGrow 2s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+  pointer-events: none;
+}
+
+.holo-section.in-view .holo-section-beam,
+.holo-section-beam {
+  height: 100%;
+}
+
+@keyframes holoBeamGrow {
+  from { height: 0; opacity: 0; }
+  to { height: 100%; opacity: 0.7; }
+}
+
+.holo-section-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0, 229, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 229, 255, 0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: linear-gradient(to bottom, black, transparent 85%);
+  opacity: 0;
+  animation: holoGridFade 2.2s cubic-bezier(0.25, 0.1, 0.25, 1) 0.2s forwards;
+  pointer-events: none;
+}
+
+@keyframes holoGridFade {
+  to { opacity: 0.35; }
+}
+
+.holo-grid {
+  transform-style: preserve-3d;
+}
+
+.section-header-line {
+  display: block;
+  height: 2px;
+  width: 0;
+  margin-top: 0.75rem;
+  background: linear-gradient(90deg, var(--jarvis-cyan), var(--jarvis-gold), transparent);
+  animation: headerLineGrow 1.4s cubic-bezier(0.25, 0.1, 0.25, 1) 0.3s forwards;
+}
+
+@keyframes headerLineGrow {
+  to { width: min(280px, 60%); }
 }
 
 /* ─── HUD Overlay ─── */
@@ -247,40 +622,76 @@
 
 .hud-reticle {
   position: fixed;
-  width: 32px;
-  height: 32px;
-  transform: translate(-50%, -50%);
+  top: 0;
+  left: 0;
+  width: 44px;
+  height: 44px;
+  transform: translate3d(-50%, -50%, 0);
   pointer-events: none;
-  z-index: 50;
+  z-index: 9999;
+  will-change: transform;
+  mix-blend-mode: screen;
 }
 
-.hud-reticle span {
+.hud-reticle-ring {
   position: absolute;
-  background: var(--jarvis-cyan);
-  opacity: 0.5;
+  inset: 0;
+  border-radius: 50%;
+  border: 1.5px solid rgba(0, 229, 255, 0.85);
+  box-shadow:
+    0 0 12px rgba(0, 229, 255, 0.65),
+    0 0 28px rgba(0, 229, 255, 0.35),
+    inset 0 0 12px rgba(0, 229, 255, 0.2);
+  animation: reticlePulse 2.2s ease-in-out infinite;
 }
 
-.hud-reticle span:nth-child(1),
-.hud-reticle span:nth-child(3) {
-  width: 8px;
-  height: 1px;
+.hud-reticle-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 7px;
+  height: 7px;
+  margin: -3.5px 0 0 -3.5px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow:
+    0 0 8px #00e5ff,
+    0 0 16px rgba(0, 229, 255, 0.9);
+}
+
+@keyframes reticlePulse {
+  0%, 100% { opacity: 0.85; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.06); }
+}
+
+.hud-reticle span:not(.hud-reticle-ring):not(.hud-reticle-dot) {
+  position: absolute;
+  background: #00e5ff;
+  opacity: 0.95;
+  box-shadow: 0 0 8px rgba(0, 229, 255, 0.8);
+}
+
+.hud-reticle span:nth-child(3),
+.hud-reticle span:nth-child(5) {
+  width: 12px;
+  height: 2px;
   top: 50%;
   transform: translateY(-50%);
 }
 
-.hud-reticle span:nth-child(1) { left: 0; }
-.hud-reticle span:nth-child(3) { right: 0; }
+.hud-reticle span:nth-child(3) { left: 2px; }
+.hud-reticle span:nth-child(5) { right: 2px; }
 
-.hud-reticle span:nth-child(2),
-.hud-reticle span:nth-child(4) {
-  width: 1px;
-  height: 8px;
+.hud-reticle span:nth-child(4),
+.hud-reticle span:nth-child(6) {
+  width: 2px;
+  height: 12px;
   left: 50%;
   transform: translateX(-50%);
 }
 
-.hud-reticle span:nth-child(2) { top: 0; }
-.hud-reticle span:nth-child(4) { bottom: 0; }
+.hud-reticle span:nth-child(4) { top: 2px; }
+.hud-reticle span:nth-child(6) { bottom: 2px; }
 
 .hud-radar {
   position: absolute;
@@ -358,7 +769,7 @@
   color: var(--jarvis-muted);
   text-decoration: none;
   border: 1px solid transparent;
-  transition: all 0.25s;
+  transition: all 0.45s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 .jarvis-nav-links a:hover,
@@ -482,7 +893,7 @@
   border: 1px solid var(--jarvis-border);
   background: rgba(0, 229, 255, 0.04);
   cursor: pointer;
-  transition: all 0.25s;
+  transition: all 0.45s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 .jarvis-btn:hover {
@@ -511,10 +922,14 @@
 }
 
 .metric-chip {
-  padding: 0.55rem 0.85rem;
-  border: 1px solid var(--jarvis-border);
-  background: rgba(0, 229, 255, 0.03);
+  padding: 0;
+  border: none;
+  background: transparent;
   font-family: var(--font-mono);
+}
+
+.metric-chip .liquid-glass-content {
+  padding: 0.55rem 0.85rem;
 }
 
 .metric-chip span {
@@ -586,10 +1001,14 @@
 
 .profile-data {
   margin-top: 0.85rem;
+  padding: 0;
+  border: none;
+  background: transparent;
+  backdrop-filter: none;
+}
+
+.profile-data .liquid-glass-content {
   padding: 0.85rem;
-  border: 1px solid var(--jarvis-border);
-  background: var(--jarvis-panel);
-  backdrop-filter: blur(12px);
 }
 
 .profile-status {
@@ -666,16 +1085,68 @@
 /* ─── Hologram Frame ─── */
 .hologram-frame {
   position: relative;
-  padding: 1rem;
-  border: 1px solid var(--jarvis-border);
-  background: var(--jarvis-panel);
-  backdrop-filter: blur(14px);
+  padding: 0;
+  border: none;
+  background: transparent;
   text-align: left;
   color: inherit;
   font: inherit;
   cursor: default;
   overflow: hidden;
-  transition: border-color 0.3s, box-shadow 0.3s;
+  will-change: transform, opacity;
+  transition: border-color 0.35s cubic-bezier(0.25, 0.1, 0.25, 1), box-shadow 0.35s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.holo-content {
+  position: relative;
+  z-index: 2;
+  padding: 1rem;
+}
+
+.holo-glow {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 229, 255, 0.22), transparent 70%);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.hologram-frame:hover .holo-glow {
+  opacity: 1;
+}
+
+.holo-noise {
+  position: absolute;
+  inset: 0;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  pointer-events: none;
+  animation: holoFlicker 4s steps(2) infinite;
+}
+
+@keyframes holoFlicker {
+  0%, 100% { opacity: 0.03; }
+  50% { opacity: 0.07; }
+}
+
+.holo-projection {
+  position: absolute;
+  inset: -1px;
+  background: linear-gradient(
+    135deg,
+    rgba(0, 229, 255, 0.12) 0%,
+    transparent 40%,
+    transparent 60%,
+    rgba(255, 193, 7, 0.08) 100%
+  );
+  pointer-events: none;
+  z-index: 1;
+  mix-blend-mode: screen;
 }
 
 button.hologram-frame {
@@ -712,8 +1183,25 @@ button.hologram-frame {
 }
 
 .hologram-frame:hover .holo-scan {
-  animation: cardScan 2s ease-in-out infinite;
-  opacity: 0.6;
+  animation: cardScan 3s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  opacity: 0.55;
+}
+
+.hologram-frame::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 1px solid transparent;
+  background: linear-gradient(90deg, var(--jarvis-cyan), var(--jarvis-gold)) border-box;
+  mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.35s;
+  pointer-events: none;
+}
+
+.hologram-frame:hover::after {
+  opacity: 0.35;
 }
 
 @keyframes cardScan {
@@ -1100,9 +1588,67 @@ button.hologram-frame {
   display: grid;
   place-items: center;
   padding: 1rem;
-  background: rgba(2, 6, 15, 0.85);
+  background: rgba(2, 6, 15, 0.82);
   backdrop-filter: blur(14px);
   cursor: pointer;
+}
+
+.holo-modal {
+  transform-origin: center center;
+  overflow: hidden;
+}
+
+.holo-modal-ring {
+  position: absolute;
+  inset: -40%;
+  border: 1px solid rgba(0, 229, 255, 0.15);
+  border-radius: 50%;
+  animation: holoModalRing 3s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes holoModalRing {
+  to { transform: rotate(360deg); }
+}
+
+.holo-modal-scan {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--jarvis-cyan), transparent);
+  box-shadow: 0 0 20px var(--jarvis-cyan);
+  animation: holoModalScan 2.5s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 5;
+}
+
+@keyframes holoModalScan {
+  0%, 100% { top: 0; opacity: 0.4; }
+  50% { top: 100%; opacity: 0.9; }
+}
+
+.terminal-panel {
+  transform-origin: bottom center;
+  position: relative;
+  overflow: hidden;
+}
+
+.terminal-holo-beam {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--jarvis-cyan), var(--jarvis-gold), transparent);
+  box-shadow: 0 0 16px var(--jarvis-cyan);
+  animation: terminalBeam 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes terminalBeam {
+  0%, 100% { opacity: 0.4; transform: scaleX(0.6); }
+  50% { opacity: 1; transform: scaleX(1); }
 }
 
 .jarvis-modal {
@@ -1110,10 +1656,10 @@ button.hologram-frame {
   width: min(720px, 100%);
   max-height: min(86vh, 760px);
   overflow: auto;
-  padding: 1.25rem;
-  border: 1px solid var(--jarvis-border);
-  background: linear-gradient(180deg, rgba(4, 14, 28, 0.96), rgba(2, 8, 18, 0.98));
-  box-shadow: 0 0 60px rgba(0, 229, 255, 0.1), inset 0 0 40px rgba(0, 229, 255, 0.03);
+  padding: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
   cursor: default;
 }
 
@@ -1210,6 +1756,24 @@ button.hologram-frame {
 }
 
 /* ─── Responsive ─── */
+@media (prefers-reduced-motion: reduce) {
+  .holo-section-beam,
+  .holo-section-grid,
+  .holo-noise,
+  .holo-modal-ring,
+  .holo-modal-scan,
+  .terminal-holo-beam,
+  .boot-holo-grid,
+  .spatial-hud-core,
+  .spatial-hud-core::before,
+  .spatial-hud-core::after,
+  .scanlines,
+  .radar-sweep,
+  .hud-reticle-ring {
+    animation: none !important;
+  }
+}
+
 @media (max-width: 1100px) {
   .hud-side,
   .hud-radar,
@@ -1224,6 +1788,21 @@ button.hologram-frame {
 }
 
 @media (max-width: 980px) {
+  .spatial-dock {
+    flex-direction: column;
+    align-items: stretch;
+    border-radius: var(--spatial-radius);
+  }
+
+  .spatial-dock-links {
+    width: 100%;
+  }
+
+  .spatial-plane,
+  .spatial-ring {
+    display: none;
+  }
+
   .jarvis-hero,
   .split-section,
   .closing-section {
@@ -1247,6 +1826,17 @@ button.hologram-frame {
   .hud-reticle {
     display: none;
   }
+
+  body,
+  a,
+  button,
+  [role='button'],
+  .jarvis-btn,
+  .hologram-frame,
+  input,
+  textarea {
+    cursor: auto;
+  }
 }
 
 @media (max-width: 680px) {
@@ -1254,8 +1844,16 @@ button.hologram-frame {
     cursor: auto;
   }
 
+  .certificate-liquid-fill .liquid-glass-content {
+    grid-template-columns: 1fr;
+  }
+
   .jarvis-content {
-    padding: 0 1rem 5rem;
+    padding: 6.5rem 1rem 5rem;
+  }
+
+  .spatial-dock-wrap {
+    width: calc(100vw - 1.5rem);
   }
 
   .jarvis-nav {
